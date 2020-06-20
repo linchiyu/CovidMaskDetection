@@ -1,0 +1,149 @@
+from threading import Thread
+from threading import Lock
+import cv2
+import sys
+import time
+
+class PiVideoStream:
+    """
+    Pi Camera initialize then stream and read the first video frame from stream
+    """
+    def __init__(self, resolution=(640, 480),
+                 framerate=32, rotation=0,
+                 hflip=True, vflip=False):
+        try:
+            from picamera.array import PiRGBArray
+            from picamera import PiCamera
+            self.camera = PiCamera()
+        except:
+            sys.exit(1)
+        self.camera.resolution = resolution
+        self.camera.framerate = framerate
+        self.camera.rotation = rotation
+        self.camera.hflip = hflip
+        self.camera.vflip = vflip
+        self.rawCapture = PiRGBArray(self.camera, size=resolution)
+        self.stream = self.camera.capture_continuous(self.rawCapture,
+                                                     format="bgr",
+                                                     use_video_port=True)
+        self.read_lock = Lock()
+        # initialize the frame and the variable used to indicate
+        # if the thread should be stopped
+        self.frame = None
+        self.stopped = False
+
+    def start(self):
+        """ start the thread to read frames from the video stream """
+        t = Thread(target=self.update, args=())
+        t.daemon = True
+        t.start()
+        return self
+
+    def update(self):
+        """ keep looping infinitely until the thread is stopped """
+        for f in self.stream:
+            # if the thread indicator variable is set, stop the thread
+            # and release camera resources
+            if self.stopped:
+                self.stream.close()
+                self.rawCapture.close()
+                self.camera.close()
+                return
+            # grab the frame from the stream and clear the stream in
+            # preparation for the next frame
+            frame = f.array
+            self.rawCapture.truncate(0)
+            with self.read_lock:
+                self.frame = frame
+
+    def read(self):
+        """ return the frame most recently read """
+        with self.read_lock:
+            frame = self.frame.copy()
+        return frame
+
+    def stop(self):
+        """ indicate that the thread should be stopped """
+        self.stopped = True
+        time.sleep(3)
+
+#------------------------------------------------------------------------------
+class WebcamVideoStream:
+    """
+    WebCam initialize then stream and read the first video frame from stream
+    """
+    def __init__(self, cam_src=0, cam_width=640,
+                 cam_height=480, rotation=0):
+        try:
+            self.webcam = cv2.VideoCapture(cam_src)
+        except:
+            print ("Erro na camera! Verifique se a camera", cam_src, "está instalada!")
+            sys.exit(1)
+        self.webcam.set(3, cam_width)
+        self.webcam.set(4, cam_height)
+        self.rotation = rotation
+        (self.grabbed, self.frame) = self.webcam.read()
+        self.read_lock = Lock()
+        # initialize the variable used to indicate if the thread should
+        # be stopped
+        self.stopped = False
+
+    def start(self):
+        """ start the thread to read frames from the video stream """
+        t = Thread(target=self.update, args=())
+        t.daemon = True
+        t.start()
+        return self
+
+    def update(self):
+        """ keep looping infinitely until the thread is stopped """
+        while True:
+            # if the thread indicator variable is set, stop the thread
+            if self.stopped:
+                self.webcam.release()
+                break
+            # otherwise, read the next frame from the webcam stream
+            grabbed, frame = self.webcam.read()
+            if self.rotation == 0:
+                None
+            elif self.rotation == 90:
+                frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
+            elif self.rotation == 180:
+                frame = cv2.rotate(frame, cv2.ROTATE_180)
+            elif self.rotation == 270:
+                frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
+
+            #mirror the image
+            frame = cv2.flip(frame, 1)
+
+            with self.read_lock:
+                self.grabbed = grabbed
+                self.frame = frame
+
+    def read(self):
+        """ return the frame most recently read """
+        with self.read_lock:
+            frame = self.frame.copy()
+        return frame
+
+    def stop(self):
+        """ indicate that the thread should be stopped """
+        self.stopped = True
+        time.sleep(1)
+
+def iniciarCamera(camera=0, width=640, height=480, rotation=0):
+    try:
+        if camera == 'PI' or camera == 'pi':
+            print("Iniciando Pi Camera ....")
+            cap = PiVideoStream(resolution=(width, height), rotation=rotation).start()
+            time.sleep(2.0)  # Allow PiCamera time to initialize
+        else:
+            print("Iniciando Camera USB: ", str(camera))
+            cap = WebcamVideoStream(cam_src=camera, 
+                cam_width=width, cam_height=height, 
+                rotation=rotation).start()
+            time.sleep(2.0) # Allow WebCam time to initialize
+        return cap
+    except:
+        print("Erro na abertura da camera")
+        sys.exit(0)
