@@ -4,69 +4,134 @@ from utils import cameraThread
 from utils.interface import Interface
 from utils.soundManager import SoundManager
 from utils.face_class import MaskDetector
+import time
+from settings import *
+import uuid
+import hashlib, binascii, os
+import logging
+import datetime
 
-CAMERA = 1 #0, 1, 'pi'
-ROTATION = 0 #0, 90, 180, 270
+def verify_key():
+	"""Verify a stored password against one provided by user"""
+	provided_password = str(uuid.UUID(int=uuid.getnode()))
+	f = open("data/key", "r")
+	stored_password = f.read()
+	f.close()
+	salt = stored_password[:64]
+	stored_password = stored_password[64:]
+	pwdhash = hashlib.pbkdf2_hmac('sha512', 
+								  provided_password.encode('utf-8'), 
+								  salt.encode('ascii'), 
+								  100000)
+	pwdhash = binascii.hexlify(pwdhash).decode('ascii')
+	return pwdhash == stored_password
 
-WIDTH = 640
-HEIGHT = 480
-CANVAS_WIDTH = 10
-CANVAS_HEIGHT = 106
-
-SOUND_TIME = 1 #tempo em segundos para reproduzir outro som
-SOUND_WAIT_TIME = 7 #tempo em segundos para reproduzir o mesmo som
-#assim que receber 2 waits zero o tempo para reproduzir o mesmo som
-
-
-GREEN = (85,201,0)
-RED = (2,1,211)
-YELLOW = (8,191,253)
-
-cam = cameraThread.iniciarCamera(camera=CAMERA, width=WIDTH, height=HEIGHT, rotation=ROTATION)
-detector = MaskDetector()
-detector.run(cam)
-
-#cv2.namedWindow('ArticfoxMaskDetection', cv2.WND_PROP_FULLSCREEN)
-#cv2.setWindowProperty('ArticfoxMaskDetection', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
-
-interface = Interface()
-sound = SoundManager()
-message = 'wait'
-color = YELLOW
-last = message
-
-while True:
-	image = cam.read()
-
-	if detector.new:
-		detector.new = False
-		last = message
-
-	if detector.largest_predict == None:
-		message = 'wait'
-		color = YELLOW
-	elif detector.largest_predict[0] == 0: #com_mascara
-		message = 'pass'
-		color = GREEN
-	else:
-		message = 'stop'
-		color = RED
-
-	image = detector.draw(image)
-	image = cv2.copyMakeBorder(image,CANVAS_HEIGHT,CANVAS_HEIGHT,CANVAS_WIDTH,CANVAS_WIDTH,cv2.BORDER_CONSTANT,value=color)
+def videoMain():
+	GREEN = (85,201,0)
+	RED = (2,1,211)
+	YELLOW = (8,191,253)
 	
-	image = interface.insertMessage(image, message)
-	image = interface.insertLogo(image)
+	cam = cameraThread.iniciarCamera(camera=CAMERA, width=WIDTH, height=HEIGHT, rotation=ROTATION)
+	sound = SoundManager()
+	sound.run()
+	detector = MaskDetector()
+	detector.run(cam)
+	interface = Interface()
+
+	cv2.namedWindow('ArticfoxMaskDetection', cv2.WND_PROP_FULLSCREEN)
+	cv2.setWindowProperty('ArticfoxMaskDetection', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+
+	message = 'wait'
+	color = YELLOW
+	last = message
+
+	played_sound_time = 0
+	cur_time = 0
+	play = False
+	reset = False
 
 
+	while True:
+		image = cam.read()
+
+		cur_time = time.time()
+
+		if detector.new:
+			detector.new = False
+			if detector.largest_predict == None: #wait
+				if last == 'wait':
+					message = 'wait'
+					color = YELLOW
+					reset = True
+				last = 'wait'
+			elif detector.largest_predict[0] == 0: #pass/com_mascara
+				if last == 'pass':
+					message = 'pass'
+					color = GREEN
+					if (cur_time - played_sound_time) > SOUND_WAIT_TIME:
+						play = True
+				elif last == 'stop':
+					reset = True
+				last = 'pass'
+			else: #stop/sem_mascara
+				if last == 'stop':
+					message = 'stop'
+					color = RED
+					if (cur_time - played_sound_time) > SOUND_WAIT_TIME:
+						play = True
+				elif last == 'pass':
+					reset = True
+				last = 'stop'
+
+		if play:
+			play = False
+			played_sound_time = cur_time
+			sound.soundQ.put(message)
+		if reset:
+			if (cur_time - played_sound_time) > SOUND_TIME:
+				reset = False
+				played_sound_time = 0
+		
+		if SHOW_BB:
+			image = detector.draw(image)
+		image = cv2.copyMakeBorder(image,CANVAS_HEIGHT,CANVAS_HEIGHT,CANVAS_WIDTH,CANVAS_WIDTH,cv2.BORDER_CONSTANT,value=color)
+		
+		image = interface.insertMessage(image, message)
+		image = interface.insertLogo(image)
+
+		if SCREEN_ROTATION == 0:
+			None
+		elif SCREEN_ROTATION == 90:
+			image = cv2.rotate(image, cv2.ROTATE_90_CLOCKWISE)
+		elif SCREEN_ROTATION == 180:
+			image = cv2.rotate(image, cv2.ROTATE_180)
+		elif SCREEN_ROTATION == 270:
+			image = cv2.rotate(image, cv2.ROTATE_90_COUNTERCLOCKWISE)
 
 
-	cv2.imshow('ArticfoxMaskDetection', image)
+		cv2.imshow('ArticfoxMaskDetection', image)
+		
+		k = cv2.waitKey(50) & 0xFF
+		if k == ord("q") or k == ord("Q") or k == 27:
+			break
+
+	sound.soundQ.put('False')
+	detector.stop = True
+	cam.stop()
+	cv2.destroyAllWindows()
+
+if __name__ == '__main__':
+	logger = logging.getLogger()
+	logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s',
+		filename='log.log',level=logging.ERROR,
+		datefmt='%Y-%m-%d %H:%M:%S')
+	try:
+		if verify_key():
+			videoMain()
+		else:
+			f = open("license_is_not_valid.txt", "a")
+			f.write(str(time.time())+' - Tentativa de acesso fracassada, por favor entre em contato com a ARTICFOX TECNOLOGIA em contato@articfox.com.br')
+			f.close()
+	except Exception:
+		logger.exception("Fatal error in main loop")
 	
-	k = cv2.waitKey(50) & 0xFF
-	if k == ord("q") or k == ord("Q") or k == 27:
-		break
-
-detector.stop = True
-cam.stop()
-cv2.destroyAllWindows()

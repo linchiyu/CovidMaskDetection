@@ -10,7 +10,7 @@ class SoundManager():
         self.p = None
 
     def run(self):
-        self.p = Process(target=self.playSound, args=(), ).start()
+        self.p = Process(target=self.playSound, args=(), daemon=True).start()
         
     def playSound(self):
         while True:
@@ -18,17 +18,17 @@ class SoundManager():
                 tipo = self.soundQ.get()
                 if tipo == 'pass':
                     playsound.playsound(self.path+'pass.mp3')
-                if tipo == 'stop':
+                elif tipo == 'stop':
                     playsound.playsound(self.path+'stop.mp3')
                 else:
                     break
             sleep(0.05)
-            print('a')
-
 
 if __name__ == '__main__':
     s = SoundManager(path='./../data/sound/')
     s.run()
     s.soundQ.put('pass')
-    s.soundQ.put(0)
+    s.soundQ.put('stop')
+    s.soundQ.put('stop')
+    s.soundQ.put('stop')
     sleep(5)

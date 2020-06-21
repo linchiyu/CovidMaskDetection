@@ -17,7 +17,7 @@ from utils.cameraThread import iniciarCamera
 class MaskDetector():
     """Facial Mask detector"""
     def __init__(self):
-        self.sess, self.graph = load_tf_model('models/face_mask_detection.pb')
+        self.sess, self.graph = load_tf_model('data/bin')
         # anchor configuration
         feature_map_sizes = [[33, 33], [17, 17], [9, 9], [5, 5], [3, 3]]
         anchor_sizes = [[0.04, 0.056], [0.08, 0.11], [0.16, 0.22], [0.32, 0.45], [0.64, 0.72]]
