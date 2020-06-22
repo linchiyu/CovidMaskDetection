@@ -1,5 +1,5 @@
 from time import sleep
-import pygame
+import playsound
 from multiprocessing import Process, Queue
 
 class SoundManager():
@@ -13,20 +13,13 @@ class SoundManager():
         self.p = Process(target=self.playSound, args=(), daemon=True).start()
         
     def playSound(self):
-        pygame.mixer.init()
         while True:
             if not self.soundQ.empty():
                 tipo = self.soundQ.get()
                 if tipo == 'pass':
-                    pygame.mixer.music.load(self.path+'pass.mp3')
-                    pygame.mixer.music.play()
-                    while pygame.mixer.music.get_busy() == True:
-                        continue
+                    playsound.playsound(self.path+'pass.mp3')
                 elif tipo == 'stop':
-                    pygame.mixer.music.load(self.path+'stop.mp3')
-                    pygame.mixer.music.play()
-                    while pygame.mixer.music.get_busy() == True:
-                        continue
+                    playsound.playsound(self.path+'stop.mp3')
                 else:
                     break
             sleep(0.05)
@@ -38,4 +31,4 @@ if __name__ == '__main__':
     s.soundQ.put('stop')
     s.soundQ.put('stop')
     s.soundQ.put('stop')
-    sleep(15)
+    sleep(5)

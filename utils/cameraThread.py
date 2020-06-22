@@ -19,7 +19,7 @@ class PiVideoStream:
             sys.exit(1)
         self.camera.resolution = resolution
         self.camera.framerate = framerate
-        self.camera.rotation = rotation
+        self.rotation = rotation
         self.camera.hflip = hflip
         self.camera.vflip = vflip
         self.rawCapture = PiRGBArray(self.camera, size=resolution)
@@ -53,6 +53,14 @@ class PiVideoStream:
             # preparation for the next frame
             frame = f.array
             self.rawCapture.truncate(0)
+            if self.rotation == 0:
+                None
+            elif self.rotation == 90:
+                frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
+            elif self.rotation == 180:
+                frame = cv2.rotate(frame, cv2.ROTATE_180)
+            elif self.rotation == 270:
+                frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
             with self.read_lock:
                 self.frame = frame
 
@@ -147,3 +155,14 @@ def iniciarCamera(camera=0, width=640, height=480, rotation=0):
     except:
         print("Erro na abertura da camera")
         sys.exit(0)
+
+if __name__ == '__main__':
+    cam = iniciarCamera(camera=1, width=640, height=480, rotation=90)
+    while True:
+        image = cam.read()
+        cv2.imshow('image', image)
+        k = cv2.waitKey(50) & 0xFF
+        if k == ord("q") or k == ord("Q") or k == 27:
+            break
+    cam.stop()
+    cv2.destroyAllWindows()

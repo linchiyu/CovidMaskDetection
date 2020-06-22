@@ -17,9 +17,6 @@ ext_modules = [
     Extension(compiled_path+"utils.imgutil",  ["utils/imgutil.py"]),
     Extension(compiled_path+"utils.interface",  ["utils/interface.py"]),
     Extension(compiled_path+"utils.nms",  ["utils/nms.py"]),
-    '''Extension(compiled_path+"utils.soundManager",  ["utils/soundManager.py"],
-        extra_compile_args=['-fopenmp'],
-        extra_link_args=['-fopenmp'],),'''
     Extension(compiled_path+"load_model.tensorflow_loader",  ["load_model/tensorflow_loader.py"]),
 #   ... all your modules that need be compiled ...
 ]
