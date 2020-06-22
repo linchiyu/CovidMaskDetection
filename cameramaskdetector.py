@@ -120,7 +120,8 @@ def videoMain():
 	cam.stop()
 	cv2.destroyAllWindows()
 
-if __name__ == '__main__':
+
+def main():
 	logger = logging.getLogger()
 	logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s',
 		filename='log.log',level=logging.ERROR,
@@ -134,4 +135,7 @@ if __name__ == '__main__':
 			f.close()
 	except Exception:
 		logger.exception("Fatal error in main loop")
-	
+
+
+if __name__ == '__main__':
+	main()

@@ -43,6 +43,3 @@ def generate_anchors(feature_map_sizes, anchor_sizes, anchor_ratios, offset=0.5)
     anchor_bboxes = np.concatenate(anchor_bboxes, axis=0)
     return anchor_bboxes
 
-
-if __name__ == '__main__':
-    anchors = generate_anchors(feature_map_sizes, anchor_sizes, anchor_ratios)
