@@ -125,4 +125,6 @@ dmypy.json
 .pyre/
 
 
-dev/
+compiled/
+
+*.c
