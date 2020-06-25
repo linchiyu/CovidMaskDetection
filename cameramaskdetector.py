@@ -38,8 +38,8 @@ def videoMain():
 	detector.run(cam)
 	interface = Interface()
 
-	cv2.namedWindow('ArticfoxMaskDetection', cv2.WND_PROP_FULLSCREEN)
-	cv2.setWindowProperty('ArticfoxMaskDetection', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+	#cv2.namedWindow('ArticfoxMaskDetection', cv2.WND_PROP_FULLSCREEN)
+	#cv2.setWindowProperty('ArticfoxMaskDetection', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
 	message = 'wait'
 	color = YELLOW

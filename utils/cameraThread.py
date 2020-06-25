@@ -19,6 +19,7 @@ class PiVideoStream:
             sys.exit(1)
         self.camera.resolution = resolution
         self.camera.framerate = framerate
+        self.camera.awb_mode = 'fluorescent'
         self.rotation = rotation
         self.camera.hflip = hflip
         self.camera.vflip = vflip
