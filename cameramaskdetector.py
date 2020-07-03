@@ -11,9 +11,26 @@ import hashlib, binascii, os
 import logging
 import datetime
 
+def get_id():
+    # Extract serial from cpuinfo file
+    cpuserial = "0000000000000000"
+    try:
+        if 'nt' in os.name: #windows
+            cpuserial = uuid.UUID(int=uuid.getnode())
+        else:
+            f = open('/proc/cpuinfo','r')
+            for line in f:
+                if line[0:6]=='Serial':
+                    cpuserial = line[10:26]
+            f.close()
+    except:
+        cpuserial = "ERROR000000000"
+
+    return cpuserial
+
 def verify_key():
 	"""Verify a stored password against one provided by user"""
-	provided_password = str(uuid.UUID(int=uuid.getnode()))
+	provided_password = str(get_id())
 	f = open("data/key", "r")
 	stored_password = f.read()
 	f.close()
