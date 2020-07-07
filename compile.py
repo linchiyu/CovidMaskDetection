@@ -7,7 +7,7 @@ from distutils.core import setup
 from distutils.extension import Extension
 from Cython.Distutils import build_ext
 
-compiled_path = 'compiled.'
+compiled_path = ''
 ext_modules = [
     Extension(compiled_path+"cameramaskdetector",  ["cameramaskdetector.py"]),
     Extension(compiled_path+"utils.anchor_decode",  ["utils/anchor_decode.py"]),

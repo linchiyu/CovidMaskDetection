@@ -150,6 +150,7 @@ def main():
 			f = open("license_is_not_valid.txt", "a")
 			f.write(str(time.time())+' - Tentativa de acesso fracassada, por favor entre em contato com a ARTICFOX TECNOLOGIA em contato@articfox.com.br')
 			f.close()
+			logger.log(logging.ERROR, "Licenca invalida. " + str(get_id()))
 	except Exception:
 		logger.exception("Fatal error in main loop")
 
