@@ -115,7 +115,7 @@ class MaskDetector():
             if class_id == 0:
                 color = (0, 255, 0)
             else:
-                color = (255, 0, 0)
+                color = (0, 0, 255)
             cv2.rectangle(image, (xmin, ymin), (xmax, ymax), color, 2)
             #cv2.putText(image, "%s: %.2f" % (self.id2class[class_id], conf), (xmin + 2, ymin - 2),
             #            cv2.FONT_HERSHEY_SIMPLEX, 0.8, color)

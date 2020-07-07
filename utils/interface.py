@@ -6,11 +6,11 @@ class Interface():
     """docstring for Interface"""
     def __init__(self, path='data/images/'):
         self.waitMessage = cv2.imread(path+'wait.png', cv2.IMREAD_UNCHANGED)
-        self.waitMessage = imgutil.resizeMaintainAspectRatio(self.waitMessage, height=70)
+        self.waitMessage = imgutil.resizeMaintainAspectRatio(self.waitMessage, height=60)
         self.stopMessage = cv2.imread(path+'stop.png', cv2.IMREAD_UNCHANGED)
-        self.stopMessage = imgutil.resizeMaintainAspectRatio(self.stopMessage, height=70)
+        self.stopMessage = imgutil.resizeMaintainAspectRatio(self.stopMessage, height=60)
         self.passMessage = cv2.imread(path+'pass.png', cv2.IMREAD_UNCHANGED)
-        self.passMessage = imgutil.resizeMaintainAspectRatio(self.passMessage, height=70)
+        self.passMessage = imgutil.resizeMaintainAspectRatio(self.passMessage, height=60)
 
         self.logo = cv2.imread(path+'logo.png', cv2.IMREAD_UNCHANGED)
         self.logo = imgutil.resizeMaintainAspectRatio(self.logo, height=80)
