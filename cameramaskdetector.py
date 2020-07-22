@@ -54,7 +54,7 @@ def videoMain():
     interface = Interface()
 
     if FULL_SCREEN:
-        cv2.namedWindow('ArticfoxMaskDetection', cv2.WND_PROP_FULLSCREEN)
+        cv2.namedWindow('ArticfoxMaskDetection', cv2.WINDOW_FREERATIO)
         cv2.setWindowProperty('ArticfoxMaskDetection', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
     message = 'wait'
