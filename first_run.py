@@ -21,21 +21,21 @@ def get_id():
     return cpuserial
 
 def generate_key():
-	"""Hash a password for storing."""
-	password = str(get_id())
-	
-	salt = hashlib.sha256(os.urandom(60)).hexdigest().encode('ascii')
-	pwdhash = hashlib.pbkdf2_hmac('sha512', password.encode('utf-8'), 
-								salt, 100000)
-	pwdhash = binascii.hexlify(pwdhash)
-	f = open("data/key", "w")
-	f.write((salt + pwdhash).decode('ascii'))
-	f.close()
+    """Hash a password for storing."""
+    password = str(get_id())
+    
+    salt = hashlib.sha256(os.urandom(60)).hexdigest().encode('ascii')
+    pwdhash = hashlib.pbkdf2_hmac('sha512', password.encode('utf-8'), 
+                                salt, 100000)
+    pwdhash = binascii.hexlify(pwdhash)
+    f = open("data/key", "w")
+    f.write((salt + pwdhash).decode('ascii'))
+    f.close()
 
-	return (salt + pwdhash).decode('ascii')
+    return (salt + pwdhash).decode('ascii')
 
 
 if __name__ == '__main__':
-	generate_key()
-	if REMOVE:
-		os.remove('first_run.py')
+    generate_key()
+    if REMOVE:
+        os.remove('first_run.py')

@@ -1,12 +1,8 @@
 # -*- coding:utf-8 -*-
 import cv2
-import time
-import argparse
 import math
 import threading
-
 import numpy as np
-from PIL import Image
 #from keras.models import model_from_json
 from utils.anchor_generator import generate_anchors
 from utils.anchor_decode import decode_bbox
@@ -16,7 +12,8 @@ from utils.cameraThread import iniciarCamera
 
 class MaskDetector():
     """Facial Mask detector"""
-    def __init__(self):
+    def __init__(self, conf=0.5):
+        self.conf = conf
         self.sess, self.graph = load_tf_model('data/bin')
         # anchor configuration
         feature_map_sizes = [[33, 33], [17, 17], [9, 9], [5, 5], [3, 3]]
@@ -142,7 +139,7 @@ class MaskDetector():
             img_raw = cameraClass.read()
             img_raw = cv2.cvtColor(img_raw, cv2.COLOR_BGR2RGB)
             self.inference(img_raw,
-                      conf_thresh=0.5,
+                      conf_thresh=self.conf,
                       iou_thresh=0.5,
                       target_shape=(260, 260)
                       )

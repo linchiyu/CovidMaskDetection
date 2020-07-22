@@ -1,5 +1,4 @@
 import cv2
-from utils import imgutil
 from utils import cameraThread
 from utils.interface import Interface
 from utils.soundManager import SoundManager
@@ -9,7 +8,6 @@ from settings import *
 import uuid
 import hashlib, binascii, os
 import logging
-import datetime
 
 def get_id():
     # Extract serial from cpuinfo file
@@ -51,7 +49,7 @@ def videoMain():
     cam = cameraThread.iniciarCamera(camera=CAMERA, width=WIDTH, height=HEIGHT, rotation=ROTATION)
     sound = SoundManager()
     sound.run()
-    detector = MaskDetector()
+    detector = MaskDetector(CONFIDENCE)
     detector.run(cam)
     interface = Interface()
 
@@ -150,7 +148,7 @@ def main():
             videoMain()
         else:
             f = open("license_is_not_valid.txt", "a")
-            f.write(str(time.time())+' - Tentativa de acesso fracassada, por favor entre em contato com a ARTICFOX TECNOLOGIA em contato@articfox.com.br')
+            f.write(str(time.time())+' - Tentativa de acesso fracassada, por favor entre em contato com a ARTICFOX TECNOLOGIA em contato@articfox.com.br\n')
             f.close()
             logger.log(logging.ERROR, "Licenca invalida. " + str(get_id()))
     except Exception:

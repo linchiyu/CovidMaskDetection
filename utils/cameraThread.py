@@ -153,7 +153,7 @@ def iniciarCamera(camera=0, width=640, height=480, rotation=0):
                 rotation=rotation).start()
             time.sleep(2.0) # Allow WebCam time to initialize
         return cap
-    except:
+    except Exception:
         print("Erro na abertura da camera")
         sys.exit(0)
 

@@ -1,18 +1,19 @@
 from time import sleep
-import pygame
-from multiprocessing import Process, Queue
+from threading import Thread
+from queue import Queue
+#from multiprocessing import Process, Queue
 
 class SoundManager():
     """docstring for SoundManager"""
     def __init__(self, path='data/sound/'):
         self.path = path
         self.soundQ = Queue()
-        self.p = None
 
     def run(self):
-        self.p = Process(target=self.playSound, args=(), daemon=True).start()
+        Thread(target=self.playSound, args=(), daemon=True).start()
         
     def playSound(self):
+        import pygame
         pygame.mixer.init()
         while True:
             if not self.soundQ.empty():

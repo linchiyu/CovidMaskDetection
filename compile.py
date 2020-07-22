@@ -20,6 +20,7 @@ ext_modules = [
     Extension(compiled_path+"load_model.tensorflow_loader",  ["load_model/tensorflow_loader.py"]),
 #   ... all your modules that need be compiled ...
 ]
+
 setup(
     name = 'ArticFoxMaskDetector',
     cmdclass = {'build_ext': build_ext},
