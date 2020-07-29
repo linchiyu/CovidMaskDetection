@@ -40,3 +40,26 @@ def tf_inference(sess, detection_graph, img_arr):
 
     return bboxes, scores
 
+
+def convertTFLite(tf_model_path="./../models/face_mask_detection.pb"):
+    graph_def_file = tf_model_path
+    input_arrays = ["data_1"]
+    output_arrays = ["loc_branch_concat_1/concat", 'cls_branch_concat_1/concat']
+
+    converter = tf.lite.TFLiteConverter.from_frozen_graph(
+      graph_def_file, input_arrays, output_arrays)
+    tflite_model = converter.convert()
+    open("converted_model.tflite", "wb").write(tflite_model)
+
+if __name__ == '__main__':
+    '''img = tf.placeholder(name="img", dtype=tf.float32, shape=(1, 300, 64, 3))
+    var = tf.get_variable("weights", dtype=tf.float32, shape=(1, 64, 64, 3))
+    PATH_TO_TENSORFLOW_MODEL = './../models/face_mask_detection.pb'
+    sess, detection_graph = load_tf_model(PATH_TO_TENSORFLOW_MODEL)
+    sess.run(tf.global_variables_initializer())
+    converter = tf.lite.TFLiteConverter.from_session(sess, [img], [out])
+    tflite_model = converter.convert()
+    open("converted_model.tflite", "wb").write(tflite_model)'''
+
+    load_tf_model('converted_model.tflite')
+    

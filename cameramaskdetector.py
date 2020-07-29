@@ -2,7 +2,7 @@ import cv2
 from utils import cameraThread
 from utils.interface import Interface
 from utils.soundManager import SoundManager
-from utils.face_class import MaskDetector
+from utils.face_class import MaskDetectorLite
 import time
 from settings import *
 import uuid
@@ -49,7 +49,7 @@ def videoMain():
     cam = cameraThread.iniciarCamera(camera=CAMERA, width=WIDTH, height=HEIGHT, rotation=ROTATION)
     sound = SoundManager()
     sound.run()
-    detector = MaskDetector(CONFIDENCE)
+    detector = MaskDetectorLite(CONFIDENCE)
     detector.run(cam)
     interface = Interface()
 
