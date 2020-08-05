@@ -1,8 +1,4 @@
-raspberry = False
-if raspberry == True:
-    import RPi.GPIO as gpio
-else:
-    None
+import RPi.GPIO as gpio
 import time
 from threading import Thread
 from queue import Queue
@@ -17,7 +13,7 @@ class CatracaManager():
         gpio.setup(self.controlPin, gpio.OUT)
         gpio.setup(self.signalPin, gpio.IN, pull_up_down=gpio.PUD_UP)
         
-        gpio.output(controlPin, gpio.HIGH)
+        gpio.output(self.controlPin, gpio.HIGH)
         self.high = True #high = True == catraca travada
         self.controlQ = Queue() #true para liberar catraca, false para desligar programa
 
@@ -40,6 +36,7 @@ class CatracaManager():
                     self.setHigh()
 
             time.sleep(0.1)
+        gpio.cleanup()
 
     def run(self):
         Thread(target=self.loopCatraca, args=(), daemon=True).start()
@@ -53,3 +50,4 @@ class CatracaManager():
         #liberar catraca
         gpio.output(self.controlPin, gpio.LOW)
         self.high = False
+
