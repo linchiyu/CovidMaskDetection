@@ -3,8 +3,10 @@ from utils import cameraThread
 from utils.interface import Interface
 from utils.soundManager import SoundManager
 from utils.face_class import MaskDetectorLite
+from utils.catraca import CatracaManager
 import time
 from settings import *
+import sys
 import uuid
 import hashlib, binascii, os
 import logging
@@ -52,6 +54,8 @@ def videoMain():
     detector = MaskDetectorLite(CONFIDENCE)
     detector.run(cam)
     interface = Interface()
+    catraca = CatracaManager()
+    catraca.run()
 
     if FULL_SCREEN:
         cv2.namedWindow('ArticfoxMaskDetection', cv2.WINDOW_FREERATIO)
@@ -86,6 +90,8 @@ def videoMain():
                     color = GREEN
                     if (cur_time - played_sound_time) > SOUND_WAIT_TIME:
                         play = True
+                    if catraca.high and catraca.controlQ.empty():
+                        catraca.controlQ.put(True)
                 elif last == 'stop':
                     reset = True
                 last = 'pass'
@@ -133,6 +139,7 @@ def videoMain():
             break
 
     sound.soundQ.put('False')
+    catraca.controlQ.put(False)
     detector.stop = True
     cam.stop()
     cv2.destroyAllWindows()
@@ -153,6 +160,7 @@ def main():
             logger.log(logging.ERROR, "Licenca invalida. " + str(get_id()))
     except Exception:
         logger.exception("Fatal error in main loop")
+    sys.exit("Program main exit")
 
 
 if __name__ == '__main__':
