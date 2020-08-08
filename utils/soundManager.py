@@ -16,18 +16,16 @@ class SoundManager():
         import pygame
         pygame.mixer.init()
         while True:
+            if pygame.mixer.music.get_busy() == True:
+                continue
             if not self.soundQ.empty():
                 tipo = self.soundQ.get()
                 if tipo == 'pass':
                     pygame.mixer.music.load(self.path+'pass.mp3')
                     pygame.mixer.music.play()
-                    while pygame.mixer.music.get_busy() == True:
-                        continue
                 elif tipo == 'stop':
                     pygame.mixer.music.load(self.path+'stop.mp3')
                     pygame.mixer.music.play()
-                    while pygame.mixer.music.get_busy() == True:
-                        continue
                 else:
                     break
             sleep(0.05)

@@ -1,4 +1,4 @@
-CAMERA = 1 #0, 1, 'pi'
+CAMERA = 0 #0, 1, 'pi'
 #default 270
 ROTATION = 0 #0, 90, 180, 270
 
@@ -21,3 +21,15 @@ CATRACA_TIME = 5 #tempo em segudos para liberar acesso da catrata
 
 SHOW_BB = True #marca cada deteccao realizada com sucesso
 CONFIDENCE = 0.70
+
+#tempo entre detecções
+TIME_DEFAULT = 5
+TIME_TEMP = TIME_DEFAULT
+TIME_MASCARA = TIME_DEFAULT
+TIME_ALCOOL = TIME_DEFAULT
+TIME_RFID = TIME_DEFAULT
+TIME_CATRACA = TIME_DEFAULT
+
+CAPACIDADE_PESSOAS = 100
+
+RFID_ATIVO = False
