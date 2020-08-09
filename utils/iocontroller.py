@@ -32,7 +32,7 @@ class IoManager():
             self.has_GPIO = False
         else:
             self.has_GPIO = True
-            GPIO.setmode(GPIO.BCM)
+            GPIO.setstep(GPIO.BCM)
             
             GPIO.setup(self.catracaDireita, GPIO.OUT)
             GPIO.setup(self.catracaEsquerda, GPIO.OUT)
@@ -46,9 +46,10 @@ class IoManager():
             GPIO.setup(self.alcoolVazio, GPIO.IN, pull_up_down=GPIO.PUD_UP)
             
             GPIO.output(self.controlPin, GPIO.HIGH)
-        #0 = sleep, 1 = temperatura, 2 = alcool
-        self.mode = 0
-        self.controlQ = Queue() #true para liberar catraca, false para desligar programa
+        #0 = sleep, 1 = temperatura, 3 = alcool, 5 = catraca
+        self.step = 0
+        self.stop = False
+        #self.controlQ = Queue() #true para liberar catraca, false para desligar programa
         self.outputQ = Queue() #saída de informações de GPIO
 
 
@@ -82,13 +83,15 @@ class IoManager():
                 if channel == None:
                     #temperatura emitiu 1 low, temperatura aceita
                     self.outputQ.put('pass')
-                    self.mode = 0
+                    self.step = 0
                     break
                 else:
                     #temperatura emitiu 2 low
                     self.outputQ.put('stop')
         else:
             print('avaliando temperatura GPIO')
+            self.outputQ.put('pass')
+            self.step = 0
 
     def avaliarAlcool(self):
         if self.has_GPIO:
@@ -99,9 +102,11 @@ class IoManager():
                 else:
                     #sensor de alcool recebido
                     self.outputQ.put('pass')
-                    self.mode = 0
+                    self.step = 0
         else:
             print('avaliando sensor alcool GPIO')
+            self.outputQ.put('pass')
+            self.step = 0
 
     def liberarCatraca(self):
         ##############
@@ -111,18 +116,20 @@ class IoManager():
         time.sleep(0.3)
         self.setHigh(self.catracaDireita)
         self.setHigh(self.catracaEsquerda)
-        self.mode = 0
+        self.step = 0
         if not self.has_GPIO:
             print('catraca liberada')
 
     def loopGpio(self):
         while True:
-            if self.mode == 1:
+            if self.step == 1:
                 self.avaliarTemperatura()
-            elif self.mode == 2:
+            elif self.step == 3:
                 self.avaliarAlcool()
-            elif self.mode == 3:
+            elif self.step == 5:
                 self.liberarCatraca()
+            if self.stop:
+                break
             time.sleep(0.1)
         if self.has_GPIO:
             GPIO.cleanup()
@@ -134,9 +141,9 @@ class IoManager():
 if __name__ == '__main__':
     x = IoManager()
     x.run()
-    x.mode = 1
+    x.step = 1
     time.sleep(5)
-    x.mode = 2
+    x.step = 3
     time.sleep(5)
-    x.mode = 3
+    x.step = 5
     time.sleep(5)

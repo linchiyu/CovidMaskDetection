@@ -19,17 +19,18 @@ SOUND_TIME = 4 #tempo em segundos para reproduzir outro som
 SOUND_WAIT_TIME = 13 #tempo em segundos para reproduzir o mesmo som
 CATRACA_TIME = 5 #tempo em segudos para liberar acesso da catrata
 
+TF_LITE = True
 SHOW_BB = True #marca cada deteccao realizada com sucesso
 CONFIDENCE = 0.70
 
 #tempo entre detecções
-TIME_DEFAULT = 5
+TIME_DEFAULT = 12
 TIME_TEMP = TIME_DEFAULT
 TIME_MASCARA = TIME_DEFAULT
 TIME_ALCOOL = TIME_DEFAULT
 TIME_RFID = TIME_DEFAULT
-TIME_CATRACA = TIME_DEFAULT
+TIME_CATRACA = 3
 
 CAPACIDADE_PESSOAS = 100
 
-RFID_ATIVO = False
+RFID_ATIVO = True
