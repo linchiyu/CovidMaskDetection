@@ -77,6 +77,7 @@ def videoMain():
     played_sound_time = 0
     cur_time = 0
     step_init_time = time.time()
+    codigo_rfid = ''
     play = False
     reset = False
 
@@ -169,7 +170,7 @@ def videoMain():
             message = 'catraca'
             reset_time = TIME_CATRACA
 
-        if (cur_time - step_init_time) > reset_time:
+        if (cur_time - step_init_time) > reset_time and step != 0:
             step = 0
             print('reset')
 
@@ -207,12 +208,14 @@ def videoMain():
         if k == ord("q") or k == ord("Q") or k == 27:
             break
         elif k == ord("p"):
-        	step = step+1
-        elif k == 13:
+            step = step+1
+        elif k == 13 or k == 10:
             usr = rfid.verificarUsuario(codigo_rfid)
+            #print(codigo_rfid)
             codigo_rfid = ''
         elif k != 255:
             codigo_rfid = codigo_rfid + chr(k)
+        #print(k)
 
     sound.soundQ.put('False')
     detector.stop = True
