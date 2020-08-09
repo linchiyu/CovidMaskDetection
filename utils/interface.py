@@ -11,10 +11,16 @@ class Interface():
         self.stopMessage = imgutil.resizeMaintainAspectRatio(self.stopMessage, height=60)
         self.passMessage = cv2.imread(path+'pass.png', cv2.IMREAD_UNCHANGED)
         self.passMessage = imgutil.resizeMaintainAspectRatio(self.passMessage, height=60)
-        self.tempMessage = cv2.imread(path+'temp.png', cv2.IMREAD_UNCHANGED)
+        self.tempMessage = cv2.imread(path+'temperatura.png', cv2.IMREAD_UNCHANGED)
         self.tempMessage = imgutil.resizeMaintainAspectRatio(self.tempMessage, height=60)
-        self.fimMessage = cv2.imread(path+'fim.png', cv2.IMREAD_UNCHANGED)
-        self.fimMessage = imgutil.resizeMaintainAspectRatio(self.fimMessage, height=60)
+        self.mascMessage = cv2.imread(path+'mascara.png', cv2.IMREAD_UNCHANGED)
+        self.mascMessage = imgutil.resizeMaintainAspectRatio(self.mascMessage, height=60)
+        self.alcoolMessage = cv2.imread(path+'alcool.png', cv2.IMREAD_UNCHANGED)
+        self.alcoolMessage = imgutil.resizeMaintainAspectRatio(self.alcoolMessage, height=60)
+        self.cartaoMessage = cv2.imread(path+'cartao.png', cv2.IMREAD_UNCHANGED)
+        self.cartaoMessage = imgutil.resizeMaintainAspectRatio(self.cartaoMessage, height=60)
+        self.catracaMessage = cv2.imread(path+'catraca.png', cv2.IMREAD_UNCHANGED)
+        self.catracaMessage = imgutil.resizeMaintainAspectRatio(self.catracaMessage, height=60)
 
         self.logo = cv2.imread(path+'logo.png', cv2.IMREAD_UNCHANGED)
         self.logo = imgutil.resizeMaintainAspectRatio(self.logo, height=80)
@@ -29,8 +35,14 @@ class Interface():
             message = self.stopMessage
         elif message == 'temperatura':
             message = self.tempMessage
+        elif message == 'mascara':
+            message = self.mascMessage
+        elif message == 'alcool':
+            message = self.alcoolMessage
+        elif message == 'cartao':
+            message = self.cartaoMessage
         elif message == 'catraca':
-            message = self.fimMessage
+            message = self.catracaMessage
         else: #message == 'wait'
             message = self.waitMessage
 

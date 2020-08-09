@@ -1,7 +1,7 @@
 import uuid
 import hashlib, binascii, os
 
-REMOVE = True
+REMOVE = False
 
 def get_id():
     # Extract serial from cpuinfo file
