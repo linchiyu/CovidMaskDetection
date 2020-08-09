@@ -6,7 +6,7 @@ else:
 import time
 from threading import Thread
 from queue import Queue
-#from settings import *
+from settings import *
 
 class IoManager():
     """In Out Manager"""
@@ -32,7 +32,7 @@ class IoManager():
             self.has_GPIO = False
         else:
             self.has_GPIO = True
-            GPIO.setstep(GPIO.BCM)
+            GPIO.setmode(GPIO.BCM)
             
             GPIO.setup(self.catracaDireita, GPIO.OUT)
             GPIO.setup(self.catracaEsquerda, GPIO.OUT)
@@ -45,7 +45,8 @@ class IoManager():
             GPIO.setup(self.sensorAlcool, GPIO.IN, pull_up_down=GPIO.PUD_UP)
             GPIO.setup(self.alcoolVazio, GPIO.IN, pull_up_down=GPIO.PUD_UP)
             
-            GPIO.output(self.controlPin, GPIO.HIGH)
+            GPIO.output(self.catracaDireita, GPIO.HIGH)
+            GPIO.output(self.catracaEsquerda, GPIO.HIGH)
         #0 = sleep, 1 = temperatura, 3 = alcool, 5 = catraca
         self.step = 0
         self.stop = False
