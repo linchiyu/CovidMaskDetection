@@ -101,6 +101,8 @@ def videoMain():
             usr = None
             play = True
             somMascara = True
+            if step == 5:
+                iopin.liberarCatraca()
         lastStep = step
 
         if step == 0:
