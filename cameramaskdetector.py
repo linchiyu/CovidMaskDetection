@@ -52,6 +52,7 @@ def videoMain():
     GREEN = (85,201,0)
     RED = (2,1,211)
     YELLOW = (8,191,253)
+    GRAY = (105,105,105)
     
     cam = cameraThread.iniciarCamera(camera=CAMERA, width=WIDTH, height=HEIGHT, rotation=ROTATION)
     sound = SoundManager()
@@ -70,7 +71,7 @@ def videoMain():
         cv2.setWindowProperty('ArticfoxMaskDetection', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
     message = 'wait'
-    color = YELLOW
+    color = GRAY
     last = message
 
     played_sound_time = 0
@@ -205,6 +206,8 @@ def videoMain():
         k = cv2.waitKey(50) & 0xFF
         if k == ord("q") or k == ord("Q") or k == 27:
             break
+        elif k == ord("p"):
+        	step = step+1
         elif k == 13:
             usr = rfid.verificarUsuario(codigo_rfid)
             codigo_rfid = ''

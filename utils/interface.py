@@ -11,6 +11,10 @@ class Interface():
         self.stopMessage = imgutil.resizeMaintainAspectRatio(self.stopMessage, height=60)
         self.passMessage = cv2.imread(path+'pass.png', cv2.IMREAD_UNCHANGED)
         self.passMessage = imgutil.resizeMaintainAspectRatio(self.passMessage, height=60)
+        self.tempMessage = cv2.imread(path+'temp.png', cv2.IMREAD_UNCHANGED)
+        self.tempMessage = imgutil.resizeMaintainAspectRatio(self.tempMessage, height=60)
+        self.fimMessage = cv2.imread(path+'fim.png', cv2.IMREAD_UNCHANGED)
+        self.fimMessage = imgutil.resizeMaintainAspectRatio(self.fimMessage, height=60)
 
         self.logo = cv2.imread(path+'logo.png', cv2.IMREAD_UNCHANGED)
         self.logo = imgutil.resizeMaintainAspectRatio(self.logo, height=80)
@@ -23,6 +27,10 @@ class Interface():
             message = self.passMessage
         elif message == 'stop':
             message = self.stopMessage
+        elif message == 'temperatura':
+            message = self.tempMessage
+        elif message == 'catraca':
+            message = self.fimMessage
         else: #message == 'wait'
             message = self.waitMessage
 
