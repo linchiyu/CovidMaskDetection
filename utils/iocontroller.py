@@ -41,14 +41,17 @@ class IoManager():
             #GPIO.add_event_detect(self.contagemCatraca, GPIO.RISING, bouncetime=300)
 
             GPIO.setup(self.temperatura, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+            #GPIO.add_event_detect(self.temperatura, GPIO.RISING, callback=self.tempSignal)
 
             GPIO.setup(self.sensorAlcool, GPIO.IN, pull_up_down=GPIO.PUD_UP)
             GPIO.setup(self.alcoolVazio, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+            GPIO.add_event_detect(self.sensorAlcool, GPIO.FALLING, callback=self.alcoolSignal)
             
             GPIO.output(self.catracaDireita, GPIO.HIGH)
             GPIO.output(self.catracaEsquerda, GPIO.HIGH)
         #0 = sleep, 1 = temperatura, 3 = alcool, 5 = catraca
         self.step = 0
+        self.tempTimer = []
         self.stop = False
         #self.controlQ = Queue() #true para liberar catraca, false para desligar programa
         self.outputQ = Queue() #saída de informações de GPIO
@@ -73,37 +76,35 @@ class IoManager():
             return GPIO.input(pin)
         else:
             return 1
-
+        
     def avaliarTemperatura(self):
         if self.has_GPIO:
-            while True:
-                channel = GPIO.wait_for_edge(self.temperatura, GPIO.FALLING, timeout=TIME_TEMP * 1000)
-                if channel == None:
-                    break
-                channel = GPIO.wait_for_edge(self.temperatura, GPIO.FALLING, timeout=500)
-                if channel == None:
-                    #temperatura emitiu 1 low, temperatura aceita
+            x = GPIO.wait_for_edge(self.temperatura, GPIO.RISING, timeout=TIME_TEMP*1000)
+            if x == None:
+                pass
+            else:
+                x = GPIO.wait_for_edge(self.temperatura, GPIO.FALLING, timeout=300)
+                if x == None:
                     self.outputQ.put('pass')
+                    print('pass')
                     self.step = 0
-                    break
                 else:
-                    #temperatura emitiu 2 low
+                    GPIO.wait_for_edge(self.temperatura, GPIO.RISING, timeout=500)
                     self.outputQ.put('stop')
+                    print('stop')
         else:
             print('avaliando temperatura GPIO')
             self.outputQ.put('pass')
             self.step = 0
 
+    def alcoolSignal(self, channel):
+        if self.step == 3:
+            self.outputQ.put('pass')
+            self.step = 0
+        
     def avaliarAlcool(self):
         if self.has_GPIO:
-            while True:
-                channel = GPIO.wait_for_edge(self.sensorAlcool, GPIO.FALLING, timeout=TIME_ALCOOL * 1000)
-                if channel == None:
-                    break
-                else:
-                    #sensor de alcool recebido
-                    self.outputQ.put('pass')
-                    self.step = 0
+            pass
         else:
             print('avaliando sensor alcool GPIO')
             self.outputQ.put('pass')
@@ -112,9 +113,10 @@ class IoManager():
     def liberarCatraca(self):
         ##############
         #adicionar logica de pessoa ja ter passado na catraca
+        time.sleep(1)
         self.setLow(self.catracaDireita)
         self.setLow(self.catracaEsquerda)
-        time.sleep(0.3)
+        time.sleep(1)
         self.setHigh(self.catracaDireita)
         self.setHigh(self.catracaEsquerda)
         self.step = 0
@@ -125,26 +127,28 @@ class IoManager():
         while True:
             if self.step == 1:
                 self.avaliarTemperatura()
-            elif self.step == 3:
+                '''elif self.step == 3:
                 self.avaliarAlcool()
-            elif self.step == 5:
-                self.liberarCatraca()
+                pass'''
+                '''elif self.step == 5:
+                self.liberarCatraca()'''
+            else:
+                time.sleep(0.1)
             if self.stop:
                 break
-            time.sleep(0.1)
         if self.has_GPIO:
             GPIO.cleanup()
 
     def run(self):
         Thread(target=self.loopGpio, args=(), daemon=True).start()
+        
+    def liberar(self):
+        Thread(target=self.liberarCatraca, args=(), daemon=True).start()
 
 
 if __name__ == '__main__':
     x = IoManager()
     x.run()
     x.step = 1
-    time.sleep(5)
-    x.step = 3
-    time.sleep(5)
-    x.step = 5
-    time.sleep(5)
+    time.sleep(10)
+    x.stop = True
