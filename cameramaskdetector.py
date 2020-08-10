@@ -198,6 +198,12 @@ def videoMain():
         image = interface.insertMessage(image, message)
         image = interface.insertLogo(image)
         image = interface.insertLogo2(image)
+        
+        if step == 5:
+            if usr != None:
+                registroPonto = time.strftime("%d/%m/%Y %H:%M:%S", time.gmtime()) + ' - ' + usr['nome'] + '['+ usr['empresa'] + ']'
+                image = cv2.putText(image, registroPonto, (30, 30), cv2.FONT_HERSHEY_SIMPLEX,  
+                       0.6, (255,255,255), 1, cv2.LINE_AA)
 
         if SCREEN_ROTATION == 0:
             None
