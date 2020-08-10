@@ -80,30 +80,19 @@ def videoMain():
     codigo_rfid = ''
     play = False
     reset = False
+    somMascara = False
 
     #0 = Wait, 1 = temperatura, 2 = mascara, 3 = alcool, 4 = rfid, 5 = catraca
     step = 0
     lastStep = step
     reset_time = TIME_DEFAULT
+    validacao = 0
+    usr = None
 
     while True:
         image = cam.read()
 
         cur_time = time.time()
-
-        last = message
-        if lastStep != step:
-            #step changed
-            iopin.step = step
-            step_init_time = cur_time
-            validacao = 0
-            codigo_rfid = ''
-            usr = None
-            play = True
-            somMascara = True
-            if step == 5:
-                iopin.liberarCatraca()
-        lastStep = step
 
         if step == 0:
             #aguardar alguma pessoa passar pelo totem
@@ -119,6 +108,7 @@ def videoMain():
                 result = iopin.outputQ.get()
                 if result == 'pass':
                     #temperatura normal
+                    message = 'mascara'
                     step = 2
                 elif result == 'stop':
                     #temperatura incorreta, tente novamente
@@ -126,7 +116,7 @@ def videoMain():
                     pass
         elif step == 2:
             #verificar mascara
-            message = 'mascara'
+            #message = 'mascara'
             reset_time = TIME_MASCARA
             if detector.new:
                 detector.new = False
@@ -172,7 +162,7 @@ def videoMain():
             message = 'catraca'
             reset_time = TIME_CATRACA
 
-        if (cur_time - step_init_time) > reset_time and step != 0:
+        if (cur_time - step_init_time) > reset_time and step != 0 and lastStep != 0:
             step = 0
             print('reset')
 
@@ -185,6 +175,21 @@ def videoMain():
             if (cur_time - played_sound_time) > SOUND_TIME:
                 reset = False
                 played_sound_time = 0
+                
+        last = message
+        if lastStep != step:
+            #step changed
+            iopin.step = step
+            iopin.outputQ.queue.clear()
+            step_init_time = cur_time
+            validacao = 0
+            codigo_rfid = ''
+            usr = None
+            play = True
+            somMascara = True
+            if step == 5:
+                iopin.liberar()
+            lastStep = step
         
         if SHOW_BB:
             image = detector.draw(image)
@@ -220,6 +225,7 @@ def videoMain():
         #print(k)
 
     sound.soundQ.put('False')
+    iopin.stop = True
     detector.stop = True
     cam.stop()
     cv2.destroyAllWindows()
