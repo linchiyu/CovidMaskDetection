@@ -88,6 +88,7 @@ def videoMain():
     reset_time = TIME_DEFAULT
     validacao = 0
     usr = None
+    usuario = None
 
     while True:
         image = cam.read()
@@ -142,6 +143,7 @@ def videoMain():
                 result = iopin.outputQ.get()
                 if result == 'pass':
                     #temperatura normal
+                    usuario = None
                     step = 4
         elif step == 4:
             #verificar cartao do usuario
@@ -153,6 +155,7 @@ def videoMain():
                     if usr['numero'] == 6042777:
                         RFID_ATIVO = False
                     print(usr['nome'], usr['empresa'])
+                    usuario = usr
                     step = 5
             else:
                 step = 5
@@ -200,8 +203,8 @@ def videoMain():
         image = interface.insertLogo2(image)
         
         if step == 5:
-            if usr != None:
-                registroPonto = time.strftime("%d/%m/%Y %H:%M:%S", time.gmtime()) + ' - ' + usr['nome'] + '['+ usr['empresa'] + ']'
+            if usuario != None:
+                registroPonto = time.strftime("%d/%m/%Y %H:%M:%S", time.gmtime()) + ' - ' + usuario['nome'] + '['+ usuario['empresa'] + ']'
                 image = cv2.putText(image, registroPonto, (30, 30), cv2.FONT_HERSHEY_SIMPLEX,  
                        0.6, (255,255,255), 1, cv2.LINE_AA)
 
