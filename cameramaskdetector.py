@@ -167,8 +167,10 @@ def videoMain():
 
         if (cur_time - step_init_time) > reset_time and step != 0 and lastStep != 0:
             step = 0
-            print('reset')
 
+        if iopin.contagem >= CAPACIDADE_PESSOAS:
+            step = 0
+            message = 'limite'
 
         if play:
             play = False
@@ -225,6 +227,8 @@ def videoMain():
             break
         elif k == ord("p"):
             step = step+1
+        elif k == ord("c"):
+            iopin.contagem = iopin.contagem + 1
         elif k == 13 or k == 10:
             usr = rfid.verificarUsuario(codigo_rfid)
             #print(codigo_rfid)

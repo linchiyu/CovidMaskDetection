@@ -13,11 +13,20 @@ class IoManager():
     def __init__(self):
         #catraca - OUT
         #saída de sinal LOW libera a catraca
-        self.catracaDireita = 23
+        self.catracaDireita = 18
         self.catracaEsquerda = 25
         #contagem catraca - IN
         #VERIFICAR REGRA DO SINAL
-        self.contagemCatraca = 24
+        #self.contagemCatraca = 24
+        self.sensorEsqCat = 5
+        self.sensorDirCat = 6
+
+        self.sensorEsqCat2 = 23
+        self.sensorDirCat2 = 24
+
+        #numero de pessoas dentro da loja
+        self.contagem = 0
+
         #temperatura - IN
         #entrada de sinal LOW significa ativacao do sensor de temperatura
         #1 LOW = temperatura normal
@@ -28,6 +37,7 @@ class IoManager():
         self.sensorAlcool = 17
         self.alcoolVazio = 27
 
+
         if 'nt' in os.name: #windows
             self.has_GPIO = False
         else:
@@ -36,8 +46,13 @@ class IoManager():
             
             GPIO.setup(self.catracaDireita, GPIO.OUT)
             GPIO.setup(self.catracaEsquerda, GPIO.OUT)
+
+            GPIO.setup(self.sensorEsqCat, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+            GPIO.setup(self.sensorDirCat, GPIO.IN, pull_up_down=GPIO.PUD_UP)
             
-            GPIO.setup(self.contagemCatraca, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+            #GPIO.setup(self.contagemCatraca, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+            GPIO.setup(self.sensorEsqCat2, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+            GPIO.setup(self.sensorDirCat2, GPIO.IN, pull_up_down=GPIO.PUD_UP)
             #GPIO.add_event_detect(self.contagemCatraca, GPIO.RISING, bouncetime=300)
 
             GPIO.setup(self.temperatura, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -112,15 +127,43 @@ class IoManager():
 
     def liberarCatraca(self):
         ##############
+        if self.contagem >= CAPACIDADE_PESSOAS:
+            #capacidade máxima de pessoas atingida
+            self.outputQ.put('stop')
+            print('stop')
         #adicionar logica de pessoa ja ter passado na catraca
-        time.sleep(1)
-        self.setLow(self.catracaDireita)
-        self.setLow(self.catracaEsquerda)
-        time.sleep(1)
-        self.setHigh(self.catracaDireita)
-        self.setHigh(self.catracaEsquerda)
-        self.step = 0
-        if not self.has_GPIO:
+        if self.has_GPIO:
+            time.sleep(1)
+            self.setLow(self.catracaDireita)
+            self.setLow(self.catracaEsquerda)
+            time.sleep(1)
+            self.setHigh(self.catracaDireita)
+            self.setHigh(self.catracaEsquerda)
+            x = GPIO.wait_for_edge(self.sensorEsqCat, GPIO.FALLING, timeout=5000)
+            if x == None:
+                pass
+            else:
+                x = GPIO.wait_for_edge(self.sensorDirCat, GPIO.FALLING, timeout=1000)
+                if x == None:
+                    pass
+                else:
+                    self.contagem = self.contagem + 1
+            self.step = 0
+        else:
+            print('catraca liberada')
+
+    def passagemCatraca(self):
+        ##############
+        #adicionar logica de pessoa ja ter passado na catraca
+        if self.has_GPIO:
+            time.sleep(1)
+            self.setLow(self.catracaDireita)
+            self.setLow(self.catracaEsquerda)
+            time.sleep(1)
+            self.setHigh(self.catracaDireita)
+            self.setHigh(self.catracaEsquerda)
+            self.step = 0
+        else:
             print('catraca liberada')
 
     def loopGpio(self):

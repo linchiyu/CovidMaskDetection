@@ -21,6 +21,8 @@ class Interface():
         self.cartaoMessage = imgutil.resizeMaintainAspectRatio(self.cartaoMessage, height=60)
         self.catracaMessage = cv2.imread(path+'catraca.png', cv2.IMREAD_UNCHANGED)
         self.catracaMessage = imgutil.resizeMaintainAspectRatio(self.catracaMessage, height=60)
+        self.limiteMessage = cv2.imread(path+'limite.png', cv2.IMREAD_UNCHANGED)
+        self.limiteMessage = imgutil.resizeMaintainAspectRatio(self.limiteMessage, height=60)
 
         self.logo = cv2.imread(path+'logo.png', cv2.IMREAD_UNCHANGED)
         self.logo = imgutil.resizeMaintainAspectRatio(self.logo, height=80)
@@ -43,6 +45,8 @@ class Interface():
             message = self.cartaoMessage
         elif message == 'catraca':
             message = self.catracaMessage
+        elif message == 'limite':
+            message = self.limiteMessage
         else: #message == 'wait'
             message = self.waitMessage
 
