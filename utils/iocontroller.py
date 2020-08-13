@@ -148,6 +148,7 @@ class IoManager():
                     pass
                 else:
                     self.contagem = self.contagem + 1
+                    print('passagem registrada' + self.contagem)
             self.step = 0
         else:
             print('catraca liberada')
