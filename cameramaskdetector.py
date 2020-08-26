@@ -81,6 +81,23 @@ def videoMain():
     biden_image = face_recognition.load_image_file("f2.jpg")
     biden_face_encoding = face_recognition.face_encodings(biden_image)[0]
 
+    # Create arrays of known face encodings and their names
+    known_face_encodings = [
+        obama_face_encoding,
+        biden_face_encoding
+    ]
+
+    known_face_names = [
+        "lin",
+        "s"
+    ]
+
+    # Initialize some variables
+    face_locations = []
+    face_encodings = []
+    face_names = []
+    process_this_frame = True
+
     message = 'wait'
     color = GRAY
     last = message
@@ -110,6 +127,8 @@ def videoMain():
 
         # Convert the image from BGR color (which OpenCV uses) to RGB color (which face_recognition uses)
         rgb_small_frame = small_frame[:, :, ::-1]
+        face_locations = face_recognition.face_locations(rgb_small_frame)
+        face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
 
         for face_encoding in face_encodings:
             # See if the face is a match for the known face(s)
