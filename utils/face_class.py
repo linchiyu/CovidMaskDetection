@@ -4,6 +4,8 @@ import cv2
 import math
 import threading
 import numpy as np
+import face_recognition
+import time
 #from keras.models import model_from_json
 from utils.anchor_generator import generate_anchors
 from utils.anchor_decode import decode_bbox
@@ -92,9 +94,9 @@ class MaskDetector():
 
             if largest == None:
                 largest = (class_id, conf, xmin, ymin, xmax, ymax)
-                largest_size = math.sqrt((xmax-xmin)^2 + (ymax-ymin)^2)
+                largest_size = math.sqrt((xmax-xmin)**2 + (ymax-ymin)**2)
             else:
-                size = math.sqrt((xmax-xmin)^2 + (ymax-ymin)^2)
+                size = math.sqrt((xmax-xmin)**2 + (ymax-ymin)**2)
                 if largest_size < size:
                     largest = (class_id, conf, xmin, ymin, xmax, ymax)
                     largest_size = size
@@ -127,9 +129,9 @@ class MaskDetector():
         for (class_id, conf, xmin, ymin, xmax, ymax) in results:
             if largest == None:
                 largest = (class_id, conf, xmin, ymin, xmax, ymax)
-                largest_size = math.sqrt((xmax-xmin)^2 + (ymax-ymin)^2)
+                largest_size = math.sqrt((xmax-xmin)**2 + (ymax-ymin)**2)
             else:
-                size = math.sqrt((xmax-xmin)^2 + (ymax-ymin)^2)
+                size = math.sqrt((xmax-xmin)**2 + (ymax-ymin)**2)
                 if largest_size < size:
                     largest = (class_id, conf, xmin, ymin, xmax, ymax)
                     largest_size = size
@@ -241,9 +243,9 @@ class MaskDetectorLite():
 
             if largest == None:
                 largest = (class_id, conf, xmin, ymin, xmax, ymax)
-                largest_size = math.sqrt((xmax-xmin)^2 + (ymax-ymin)^2)
+                largest_size = math.sqrt((xmax-xmin)**2 + (ymax-ymin)**2)
             else:
-                size = math.sqrt((xmax-xmin)^2 + (ymax-ymin)^2)
+                size = math.sqrt((xmax-xmin)**2 + (ymax-ymin)**2)
                 if largest_size < size:
                     largest = (class_id, conf, xmin, ymin, xmax, ymax)
                     largest_size = size
@@ -276,9 +278,9 @@ class MaskDetectorLite():
         for (class_id, conf, xmin, ymin, xmax, ymax) in results:
             if largest == None:
                 largest = (class_id, conf, xmin, ymin, xmax, ymax)
-                largest_size = math.sqrt((xmax-xmin)^2 + (ymax-ymin)^2)
+                largest_size = math.sqrt((xmax-xmin)**2 + (ymax-ymin)**2)
             else:
-                size = math.sqrt((xmax-xmin)^2 + (ymax-ymin)^2)
+                size = math.sqrt((xmax-xmin)**2 + (ymax-ymin)**2)
                 if largest_size < size:
                     largest = (class_id, conf, xmin, ymin, xmax, ymax)
                     largest_size = size
@@ -297,4 +299,96 @@ class MaskDetectorLite():
     def run(self, cameraClass):
         t = threading.Thread(target=self.camInference,args=(cameraClass,),daemon=True)
         t.start()
-      
+
+
+class FaceRecog():
+    """face recognition from face_recognition"""
+    def __init__(self, listaId, listaNome, listaRfid, listaFaceP, TAM_ROSTO=60):
+        self.listaId = listaId
+        self.listaNome = listaNome
+        self.listaRfid = listaRfid
+        self.listaFaceP = listaFaceP
+
+        self.TAM_ROSTO = TAM_ROSTO
+
+        self.face_locations = []
+        self.largestFace = None
+
+        self.id = None
+        self.nome = None
+        self.rfid = None
+        self.face = None
+
+        self.mascara = False
+        self.temperatura = False
+        self.alcool = False
+        self.rfid = False
+
+        self.stop = False
+
+    def draw(self, image):
+        #results is a vector with [class_id, conf, xmin, ymin, xmax, ymax]
+        if len(self.face_locations) == 0:
+            return image
+        if self.largestSize > self.TAM_ROSTO:
+            for (top, right, bottom, left) in self.face_locations:
+                top *= 4
+                right *= 4
+                bottom *= 4
+                left *= 4
+
+                # Draw a box around the face
+                cv2.rectangle(image, (left, top), (right, bottom), (0, 0, 255), 2)
+
+                # Draw a label with a name below the face
+                cv2.rectangle(image, (left, bottom - 35), (right, bottom), (0, 0, 255), cv2.FILLED)
+                font = cv2.FONT_HERSHEY_DUPLEX
+                cv2.putText(image, self.nome, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
+        return image
+
+    def extractLargestFace(self, faces):
+        largest = None
+        largest_size = None
+        for (top, right, bottom, left) in faces:
+            if largest == None:
+                largest = (top, right, bottom, left)
+                largest_size = math.sqrt((bottom-top)**2 + (right-left)**2)
+            else:
+                size = math.sqrt((bottom-top)**2 + (right-left)**2)
+                if largest_size < size:
+                    largest = (top, right, bottom, left)
+                    largest_size = size
+        self.face_locations = [largest]
+        self.largestSize = largest_size
+
+    def camInference(self, cameraClass):
+        while not self.stop:
+            img_raw = cameraClass.read()
+            small_frame = cv2.resize(img_raw, (0, 0), fx=0.25, fy=0.25)
+            rgb_small_frame = small_frame[:, :, ::-1]
+            faces = face_recognition.face_locations(rgb_small_frame)
+            if len(faces) > 0:
+                self.extractLargestFace(faces)
+                if self.largestSize > self.TAM_ROSTO:
+                    face_encodings = face_recognition.face_encodings(rgb_small_frame, self.face_locations)
+                    for face_encoding in face_encodings:
+                        # See if the face is a match for the known face(s)
+                        matches = face_recognition.compare_faces(self.listaFaceP, face_encoding)
+                        
+                        if True in matches:
+                            first_match_index = matches.index(True)
+                            self.id = self.listaId[first_match_index]
+                            self.nome = self.listaNome[first_match_index]
+                            self.rfid = self.listaRfid[first_match_index]
+                            self.face = self.listaFaceP[first_match_index]
+                        else:
+                            self.id = 0
+                            self.nome = 'desconhecido'
+                            self.rfid = '0'
+                            self.face = []
+
+            time.sleep(0.2)
+
+    def run(self, cameraClass):
+        t = threading.Thread(target=self.camInference,args=(cameraClass,),daemon=True)
+        t.start()

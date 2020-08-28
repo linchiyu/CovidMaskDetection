@@ -41,3 +41,11 @@ if PI:
     ROTATION = 270
     FULL_SCREEN = True
     SCREEN_ROTATION = 270
+
+#face_recognition
+TAM_ROSTO = 60
+
+###api server
+URL = 'http://localhost:8000'
+USUARIO = 'teste'
+SENHA = 'testeteste'

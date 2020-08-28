@@ -9,6 +9,7 @@ if TF_LITE:
     from utils.face_class import MaskDetectorLite
 else:
     from utils.face_class import MaskDetector
+from utils.face_class import FaceRecog
 from utils.iocontroller import IoManager
 from utils import rfid
 import time
@@ -68,35 +69,30 @@ def videoMain():
     iopin = IoManager()
     iopin.run()
 
-    if FULL_SCREEN:
-        cv2.namedWindow('ArticfoxMaskDetection', cv2.WINDOW_FREERATIO)
-        cv2.setWindowProperty('ArticfoxMaskDetection', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
-
-    #face recog
-    obama_image = face_recognition.load_image_file("f1.jpg")
-    obama_face_encoding = face_recognition.face_encodings(obama_image)[0]
-
-
-    # Load a second sample picture and learn how to recognize it.
-    biden_image = face_recognition.load_image_file("f2.jpg")
+    #########FACE RECOG####
+    biden_image = face_recognition.load_image_file("f1.jpg")
     biden_face_encoding = face_recognition.face_encodings(biden_image)[0]
 
     # Create arrays of known face encodings and their names
     known_face_encodings = [
-        obama_face_encoding,
         biden_face_encoding
     ]
 
     known_face_names = [
-        "lin",
-        "s"
+        "lin"
     ]
 
-    # Initialize some variables
-    face_locations = []
-    face_encodings = []
-    face_names = []
-    process_this_frame = True
+    ids = [1]
+    rfid_l = ['1']
+
+    recog = FaceRecog(ids, known_face_names, rfid_l, known_face_encodings, TAM_ROSTO)
+    recog.run(cam)
+
+    ######
+
+    if FULL_SCREEN:
+        cv2.namedWindow('ArticfoxMaskDetection', cv2.WINDOW_FREERATIO)
+        cv2.setWindowProperty('ArticfoxMaskDetection', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
     message = 'wait'
     color = GRAY
@@ -122,18 +118,6 @@ def videoMain():
         image = cam.read()
 
         cur_time = time.time()
-
-        small_frame = cv2.resize(image, (0, 0), fx=0.25, fy=0.25)
-
-        # Convert the image from BGR color (which OpenCV uses) to RGB color (which face_recognition uses)
-        rgb_small_frame = small_frame[:, :, ::-1]
-        face_locations = face_recognition.face_locations(rgb_small_frame)
-        face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
-
-        for face_encoding in face_encodings:
-            # See if the face is a match for the known face(s)
-            matches = face_recognition.compare_faces(known_face_encodings, face_encoding)
-            face_distances = face_recognition.face_distance(known_face_encodings, face_encoding)
 
         if step == 0:
             #aguardar alguma pessoa passar pelo totem
@@ -238,6 +222,7 @@ def videoMain():
         
         if SHOW_BB:
             image = detector.draw(image)
+            image = recog.draw(image)
         image = cv2.copyMakeBorder(image,CANVAS_HEIGHT,CANVAS_HEIGHT,CANVAS_WIDTH,CANVAS_WIDTH,cv2.BORDER_CONSTANT,value=color)
         
         image = interface.insertMessage(image, message)
