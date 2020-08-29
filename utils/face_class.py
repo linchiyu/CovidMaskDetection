@@ -6,6 +6,7 @@ import threading
 import numpy as np
 import face_recognition
 import time
+from multiprocessing import Process, Queue
 #from keras.models import model_from_json
 from utils.anchor_generator import generate_anchors
 from utils.anchor_decode import decode_bbox
@@ -313,6 +314,7 @@ class FaceRecog():
 
         self.face_locations = []
         self.largestFace = None
+        self.largestSize = 0
 
         self.id = None
         self.nome = None
@@ -324,6 +326,9 @@ class FaceRecog():
         self.alcool = False
         self.rfid = False
 
+        self.dataQ = Queue()
+        self.imageQ = Queue()
+        self.stopQ = Queue()
         self.stop = False
 
     def draw(self, image):
@@ -361,9 +366,9 @@ class FaceRecog():
         self.face_locations = [largest]
         self.largestSize = largest_size
 
-    def camInference(self, cameraClass):
-        while not self.stop:
-            img_raw = cameraClass.read()
+    def camInference(self):
+        while self.stopQ.empty():
+            img_raw = self.imageQ.get()
             small_frame = cv2.resize(img_raw, (0, 0), fx=0.25, fy=0.25)
             rgb_small_frame = small_frame[:, :, ::-1]
             faces = face_recognition.face_locations(rgb_small_frame)
@@ -377,11 +382,18 @@ class FaceRecog():
                         
                         if True in matches:
                             first_match_index = matches.index(True)
+                            data = (self.listaId[first_match_index], self.listaNome[first_match_index],
+                                self.listaRfid[first_match_index], self.listaFaceP[first_match_index],
+                                self.face_locations, self.largestSize)
+                            print(data)
+                            self.dataQ.put(data)
                             self.id = self.listaId[first_match_index]
                             self.nome = self.listaNome[first_match_index]
                             self.rfid = self.listaRfid[first_match_index]
                             self.face = self.listaFaceP[first_match_index]
                         else:
+                            data = (0, 'desconhecido', '0', [], self.face_locations, self.largest_size)
+                            self.dataQ.put(data)
                             self.id = 0
                             self.nome = 'desconhecido'
                             self.rfid = '0'
@@ -389,6 +401,19 @@ class FaceRecog():
 
             time.sleep(0.2)
 
+    def collectData(self, cameraClass):
+        while not self.stop:
+            if not self.dataQ.empty():
+                data = self.dataQ.get()
+                self.id, self.nome, self.rfid, self.face, self.face_locations, self.largestSize = data
+            if self.imageQ.empty():
+                self.imageQ.put(cameraClass.read())
+            time.sleep(0.1)
+        self.stopQ.put(True)
+
+
     def run(self, cameraClass):
-        t = threading.Thread(target=self.camInference,args=(cameraClass,),daemon=True)
-        t.start()
+        #t = threading.Thread(target=self.camInference,args=(cameraClass,),daemon=True)
+        p = Process(target=self.camInference,args=(),daemon=True)
+        t = threading.Thread(target=self.collectData,args=(cameraClass,),daemon=True).start()
+        p.start()
