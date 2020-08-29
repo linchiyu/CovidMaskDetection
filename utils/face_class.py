@@ -385,7 +385,7 @@ class FaceRecog():
                             data = (self.listaId[first_match_index], self.listaNome[first_match_index],
                                 self.listaRfid[first_match_index], self.listaFaceP[first_match_index],
                                 self.face_locations, self.largestSize)
-                            print(data)
+                            
                             self.dataQ.put(data)
                             self.id = self.listaId[first_match_index]
                             self.nome = self.listaNome[first_match_index]
