@@ -1,3 +1,5 @@
+TEST = False
+
 PI = False
 CAMERA = 0 #0, 1, 'pi'
 #default 270

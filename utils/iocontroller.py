@@ -171,9 +171,9 @@ class IoManager():
         while True:
             if self.step == 1:
                 self.avaliarTemperatura()
-                '''elif self.step == 3:
+            elif self.step == 3:
                 self.avaliarAlcool()
-                pass'''
+                pass
                 '''elif self.step == 5:
                 self.liberarCatraca()'''
             else:

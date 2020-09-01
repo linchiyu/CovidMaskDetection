@@ -29,14 +29,14 @@ USUARIO = [{
   "empresa": "Master Shopping"
 }]
 
-def verificarUsuario(numero):
+def verificarUsuario(numero, listaRfid):
 	try:
 		numero = int(numero)
 	except:
-		return None
-	for usr in USUARIO:
-		if usr['numero'] == numero:
-			#print(usr)
-			return usr
-	return None
+		return -1
+	for idx, codigoRfid in enumerate(listaRfid):
+		if int(codigoRfid) == numero:
+			print('usr', idx, codigoRfid)
+			return idx
+	return -1
 

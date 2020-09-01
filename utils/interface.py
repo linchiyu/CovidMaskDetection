@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 from utils import imgutil
+#import imgutil
 
 class Interface():
     """docstring for Interface"""
@@ -23,6 +24,8 @@ class Interface():
         self.catracaMessage = imgutil.resizeMaintainAspectRatio(self.catracaMessage, height=60)
         self.limiteMessage = cv2.imread(path+'limite.png', cv2.IMREAD_UNCHANGED)
         self.limiteMessage = imgutil.resizeMaintainAspectRatio(self.limiteMessage, height=60)
+        self.recogMessage = cv2.imread(path+'recog.png', cv2.IMREAD_UNCHANGED)
+        self.recogMessage = imgutil.resizeMaintainAspectRatio(self.recogMessage, height=60)
 
         self.logo = cv2.imread(path+'logo.png', cv2.IMREAD_UNCHANGED)
         self.logo = imgutil.resizeMaintainAspectRatio(self.logo, height=80)
@@ -30,7 +33,7 @@ class Interface():
         self.logo2 = imgutil.resizeMaintainAspectRatio(self.logo2, height=80)
 
         
-    def insertMessage(self, image, message):
+    def insertMessage(self, image, message, nome=''):
         if message == 'pass':
             message = self.passMessage
         elif message == 'stop':
@@ -47,6 +50,8 @@ class Interface():
             message = self.catracaMessage
         elif message == 'limite':
             message = self.limiteMessage
+        elif message == 'recog':
+            message = self.recogMessage
         else: #message == 'wait'
             message = self.waitMessage
 
@@ -61,6 +66,9 @@ class Interface():
         for c in range(0, 3):
             image[y1:y2, x1:x2, c] = (alpha_s * message[:, :, c] +
                                       alpha_l * image[y1:y2, x1:x2, c])
+
+        cv2.putText(image, nome, (int(image.shape[1]/8), int(40)), 
+            cv2.FONT_HERSHEY_DUPLEX, 1.0, (255, 255, 255), 1)
 
         return image
 
@@ -102,13 +110,13 @@ if __name__ == '__main__':
     image = imgutil.createColorCanvas(640,480,(0,0,0))
 
     CANVAS_WIDTH = 100
-    CANVAS_HEIGHT = 10
+    CANVAS_HEIGHT = 100
     image = cv2.copyMakeBorder(image,CANVAS_HEIGHT,CANVAS_HEIGHT,CANVAS_WIDTH,CANVAS_WIDTH,
-        cv2.BORDER_CONSTANT,value=(85,201,0))
+        cv2.BORDER_CONSTANT,value=(105,105,105))
 
-    i = Interface(path='./data/images/')
+    i = Interface(path='./../data/images/')
 
-    image = i.insertMessage(image, 'pass')
+    image = i.insertMessage(image, 'pass', '')
 
     image = i.insertLogo(image)
     image = i.insertLogo2(image)
