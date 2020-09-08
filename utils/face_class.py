@@ -92,9 +92,9 @@ class MaskDetector():
 
             if largest == None:
                 largest = (class_id, conf, xmin, ymin, xmax, ymax)
-                largest_size = math.sqrt((xmax-xmin)^2 + (ymax-ymin)^2)
+                largest_size = math.sqrt((xmax-xmin)**2 + (ymax-ymin)**2)
             else:
-                size = math.sqrt((xmax-xmin)^2 + (ymax-ymin)^2)
+                size = math.sqrt((xmax-xmin)**2 + (ymax-ymin)**2)
                 if largest_size < size:
                     largest = (class_id, conf, xmin, ymin, xmax, ymax)
                     largest_size = size
@@ -127,9 +127,9 @@ class MaskDetector():
         for (class_id, conf, xmin, ymin, xmax, ymax) in results:
             if largest == None:
                 largest = (class_id, conf, xmin, ymin, xmax, ymax)
-                largest_size = math.sqrt((xmax-xmin)^2 + (ymax-ymin)^2)
+                largest_size = math.sqrt((xmax-xmin)**2 + (ymax-ymin)**2)
             else:
-                size = math.sqrt((xmax-xmin)^2 + (ymax-ymin)^2)
+                size = math.sqrt((xmax-xmin)**2 + (ymax-ymin)**2)
                 if largest_size < size:
                     largest = (class_id, conf, xmin, ymin, xmax, ymax)
                     largest_size = size
@@ -241,9 +241,9 @@ class MaskDetectorLite():
 
             if largest == None:
                 largest = (class_id, conf, xmin, ymin, xmax, ymax)
-                largest_size = math.sqrt((xmax-xmin)^2 + (ymax-ymin)^2)
+                largest_size = math.sqrt((xmax-xmin)**2 + (ymax-ymin)**2)
             else:
-                size = math.sqrt((xmax-xmin)^2 + (ymax-ymin)^2)
+                size = math.sqrt((xmax-xmin)**2 + (ymax-ymin)**2)
                 if largest_size < size:
                     largest = (class_id, conf, xmin, ymin, xmax, ymax)
                     largest_size = size
@@ -276,9 +276,9 @@ class MaskDetectorLite():
         for (class_id, conf, xmin, ymin, xmax, ymax) in results:
             if largest == None:
                 largest = (class_id, conf, xmin, ymin, xmax, ymax)
-                largest_size = math.sqrt((xmax-xmin)^2 + (ymax-ymin)^2)
+                largest_size = math.sqrt((xmax-xmin)**2 + (ymax-ymin)**2)
             else:
-                size = math.sqrt((xmax-xmin)^2 + (ymax-ymin)^2)
+                size = math.sqrt((xmax-xmin)**2 + (ymax-ymin)**2)
                 if largest_size < size:
                     largest = (class_id, conf, xmin, ymin, xmax, ymax)
                     largest_size = size
