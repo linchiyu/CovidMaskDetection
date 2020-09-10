@@ -133,6 +133,8 @@ class MaskDetector():
                 if largest_size < size:
                     largest = (class_id, conf, xmin, ymin, xmax, ymax)
                     largest_size = size
+        if largest_size < 40:
+            return None
         return largest
 
     def camInference(self, cameraClass):
@@ -282,6 +284,8 @@ class MaskDetectorLite():
                 if largest_size < size:
                     largest = (class_id, conf, xmin, ymin, xmax, ymax)
                     largest_size = size
+        if largest_size < 40:
+            return None
         return largest
 
     def camInference(self, cameraClass):

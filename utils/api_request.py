@@ -1,11 +1,9 @@
 import numpy as np
 import json, requests
 from datetime import datetime
-#from settings import URL, USUARIO, SENHA
+from settings import URL, USUARIO, SENHA
 from threading import Thread
-URL = 'http://localhost:8000'
-USUARIO = 'teste'
-SENHA = 'testeteste'
+
 
 
 def getFaceArray(encodedNumpyData):
@@ -32,8 +30,11 @@ class API():
 		self.updateToken()
 
 	def registrarUsuario(self):
-		dados = {"username": self.user, "password1": self.password, "password2": self.password}
-		response = requests.post(URL+"/auth/registration/", data=dados)
+		try:
+			dados = {"username": self.user, "password1": self.password, "password2": self.password}
+			response = requests.post(URL+"/auth/registration/", data=dados)
+		except:
+			None
 
 	def updateToken(self):
 		try:
@@ -45,7 +46,7 @@ class API():
 				print("Token gerado com sucesso")
 				return True
 			else:
-				print("Servidor não conectado")
+				print("Dados de acesso incorretos")
 				return False
 		except:
 			print("Servidor não conectado")
@@ -80,22 +81,33 @@ class API():
 	def createAcesso(self, idPessoa=1, datahora=str(datetime.now()), tipo="entrada"):
 		success = False
 		data = {"data": datahora, "tipoAcesso": tipo, "fkpessoa": idPessoa}
-		while not success:
+		erro = 0
+		while not success or erro < 30:
 			try:
 				response = requests.post(URL+"/api/acesso/new", data=data, cookies=self.cookies)
 				if response.status_code == 201:
 					data = json.loads(response.content)
 					success = True
-				else:
-					success = False
 			except:
 				print("Erro na conexão com servidor")
+				erro += 1
 				pass
 
 	def loopCreateAcesso(self, idPessoa=1, datahora=str(datetime.now()), tipo="entrada"):
 		Thread(target=self.createAcesso,args=(idPessoa, datahora, tipo,),daemon=True).start()
 
 if __name__ == '__main__':
+	import time
+	global URL, USUARIO, SENHA
+	URL = 'http://localhost:8000'
+	USUARIO = 'teste1'
+	SENHA = 'testeteste'
 	x = API()
-	print(x.getFaceList())
+	start = time.time()
+	i = 0
+	while i < 2000:
+		x.getFaceList()
+		print(time.time()-start)
+		start= time.time()
+		i +=1
 	

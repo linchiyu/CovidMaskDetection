@@ -62,13 +62,15 @@ class Person():
 
 class FaceRecog():
     """face recognition from face_recognition"""
-    def __init__(self, listaId, listaNome, listaRfid, listaFaceP, TAM_ROSTO=60):
+    def __init__(self, listaId, listaNome, listaRfid, listaFaceP, api_class, TAM_ROSTO=60):
         self.listaId = listaId
         self.listaNome = listaNome
         self.listaRfid = listaRfid
         self.listaFaceP = listaFaceP
 
         self.TAM_ROSTO = TAM_ROSTO
+
+        self.api_class = api_class
 
         self.face_locations = []
         self.largestFace = None
@@ -128,7 +130,13 @@ class FaceRecog():
         self.largestSize = largest_size
 
     def camInference(self):
+        start = time.time()
         while self.stopQ.empty():
+            if len(self.listaId) <= 0:
+                if time.time() - start > 10:
+                    self.listaId, self.listaNome, self.listaRfid, self.listaFaceP = self.api_class.getFaceList()
+                    start = time.time()
+                continue
             img_raw = self.imageQ.get()
             small_frame = cv2.resize(img_raw, (0, 0), fx=0.25, fy=0.25)
             rgb_small_frame = small_frame[:, :, ::-1]
@@ -142,7 +150,10 @@ class FaceRecog():
                         matches = face_recognition.compare_faces(self.listaFaceP, face_encoding)
 
                         face_distances = face_recognition.face_distance(self.listaFaceP, face_encoding)
-                        best_match_index = np.argmin(face_distances)
+                        try:
+                            best_match_index = np.argmin(face_distances)
+                        except:
+                            best_match_index = 0
                         if matches[best_match_index]:
                             first_match_index = best_match_index
                             data = (self.listaId[first_match_index], self.listaNome[first_match_index],
@@ -181,8 +192,12 @@ class FaceRecog():
                 self.face = []
 
             time.sleep(0.2)
+            if time.time() - start > 30:
+                self.listaId, self.listaNome, self.listaRfid, self.listaFaceP = self.api_class.getFaceList()
+                start = time.time()
 
     def collectData(self, cameraClass):
+        start = time.time()
         while not self.stop:
             if not self.dataQ.empty():
                 data = self.dataQ.get()
@@ -191,6 +206,9 @@ class FaceRecog():
             if self.imageQ.empty():
                 self.imageQ.put(cameraClass.read())
             time.sleep(0.1)
+            if time.time() - start > 30:
+                self.listaId, self.listaNome, self.listaRfid, self.listaFaceP = self.api_class.getFaceList()
+                start = time.time()
         self.stopQ.put(True)
 
 

@@ -1,4 +1,4 @@
-TEST = False
+TEST = True
 
 PI = False
 CAMERA = 0 #0, 1, 'pi'
@@ -49,5 +49,5 @@ TAM_ROSTO = 60
 
 ###api server
 URL = 'http://localhost:8000'
-USUARIO = 'teste'
+USUARIO = 'teste1'
 SENHA = 'testeteste'
