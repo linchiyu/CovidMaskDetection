@@ -2,12 +2,15 @@ import cv2
 from utils import cameraThread
 from utils.interface import Interface
 from utils.soundManager import SoundManager
-from utils.face_class import MaskDetectorLite
 import time
 from settings import *
 import uuid
 import hashlib, binascii, os
 import logging
+if TF_LITE:
+    from utils.face_class import MaskDetectorLite as MaskDetector
+else:
+    from utils.face_class import MaskDetector
 
 def get_id():
     # Extract serial from cpuinfo file
@@ -49,7 +52,7 @@ def videoMain():
     cam = cameraThread.iniciarCamera(camera=CAMERA, width=WIDTH, height=HEIGHT, rotation=ROTATION)
     sound = SoundManager()
     sound.run()
-    detector = MaskDetectorLite(CONFIDENCE)
+    detector = MaskDetector(CONFIDENCE)
     detector.run(cam)
     interface = Interface()
 
