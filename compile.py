@@ -17,6 +17,9 @@ ext_modules = [
     Extension(compiled_path+"utils.imgutil",  ["utils/imgutil.py"]),
     Extension(compiled_path+"utils.interface",  ["utils/interface.py"]),
     Extension(compiled_path+"utils.nms",  ["utils/nms.py"]),
+    Extension(compiled_path+"utils.api_request",  ["utils/api_request.py"]),
+    Extension(compiled_path+"utils.iocontroller",  ["utils/iocontroller.py"]),
+    Extension(compiled_path+"utils.recognition",  ["utils/recognition.py"]),
     Extension(compiled_path+"load_model.tensorflow_loader",  ["load_model/tensorflow_loader.py"]),
 #   ... all your modules that need be compiled ...
 ]

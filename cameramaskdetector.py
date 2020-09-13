@@ -28,7 +28,7 @@ def get_id():
             cpuserial = uuid.UUID(int=uuid.getnode())
         else:
             f = open('/proc/cpuinfo','r')
-            for line in f:
+            for line in f: 
                 if line[0:6]=='Serial':
                     cpuserial = line[10:26]
             f.close()

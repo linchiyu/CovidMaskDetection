@@ -4,8 +4,6 @@ from datetime import datetime
 from settings import URL, USUARIO, SENHA
 from threading import Thread
 
-
-
 def getFaceArray(encodedNumpyData):
     #converte o json em array numpy
     # Deserialization
@@ -29,9 +27,9 @@ class API():
 
 		self.updateToken()
 
-	def registrarUsuario(self):
+	def registrarUsuario(self, usuario, senha):
 		try:
-			dados = {"username": self.user, "password1": self.password, "password2": self.password}
+			dados = {"username": usuario, "password1": senha, "password2": senha}
 			response = requests.post(URL+"/auth/registration/", data=dados)
 		except:
 			None
@@ -75,7 +73,7 @@ class API():
 				#print(idPessoa, nome, face_points)
 		except:
 			print("Erro na conexão com servidor")
-			pass
+			self.updateToken()
 		return idPessoa, nome, codigo, face_points
 
 	def createAcesso(self, idPessoa=1, datahora=str(datetime.now()), tipo="entrada"):
@@ -91,6 +89,7 @@ class API():
 			except:
 				print("Erro na conexão com servidor")
 				erro += 1
+				self.updateToken()
 				pass
 
 	def loopCreateAcesso(self, idPessoa=1, datahora=str(datetime.now()), tipo="entrada"):
@@ -99,15 +98,9 @@ class API():
 if __name__ == '__main__':
 	import time
 	global URL, USUARIO, SENHA
-	URL = 'http://localhost:8000'
-	USUARIO = 'teste1'
-	SENHA = 'testeteste'
+	URL = 'http://localhost'
+
+	USUARIO = 'api_client'
+	SENHA = 'api_client_secret_key2020'
 	x = API()
-	start = time.time()
-	i = 0
-	while i < 2000:
-		x.getFaceList()
-		print(time.time()-start)
-		start= time.time()
-		i +=1
 	

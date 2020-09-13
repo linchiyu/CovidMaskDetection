@@ -13,16 +13,16 @@ class IoManager():
     def __init__(self):
         #catraca - OUT
         #saída de sinal LOW libera a catraca
-        self.catracaDireita = 18
-        self.catracaEsquerda = 25
+        self.catracaDireita = 23
+        self.catracaEsquerda = 24
         #contagem catraca - IN
         #VERIFICAR REGRA DO SINAL
         #self.contagemCatraca = 24
         self.sensorEsqCat = 5
         self.sensorDirCat = 6
 
-        self.sensorEsqCat2 = 23
-        self.sensorDirCat2 = 24
+        self.sensorEsqCat2 = 18
+        self.sensorDirCat2 = 25
 
         #numero de pessoas dentro da loja
         self.contagem = 0
@@ -139,16 +139,6 @@ class IoManager():
             time.sleep(1)
             self.setHigh(self.catracaDireita)
             self.setHigh(self.catracaEsquerda)
-            x = GPIO.wait_for_edge(self.sensorEsqCat, GPIO.FALLING, timeout=5000)
-            if x == None:
-                pass
-            else:
-                x = GPIO.wait_for_edge(self.sensorDirCat, GPIO.FALLING, timeout=1000)
-                if x == None:
-                    pass
-                else:
-                    self.contagem = self.contagem + 1
-                    print('passagem registrada' + self.contagem)
             self.step = 0
         else:
             print('catraca liberada')

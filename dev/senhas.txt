@@ -1,0 +1,18 @@
+#CONSUMIR API
+USUARIO = 'api_client'
+SENHA = 'api_client_secret_key2020'
+
+#USUARIO 1
+USUARIO = 'userTotem'
+SENHA = 'totemUsuario2020'
+
+#USUARIO 2
+USUARIO = 'userTotem2'
+SENHA = 'totemUsuario2020'
+
+#ADMIN
+USUARIO = 'masterTotem'
+SENHA = 'Atcx-Fx23218084!j2'
+
+USUARIO = 'masterTotem2'
+SENHA = 'Atcx-Fx23218084!j2'
