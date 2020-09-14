@@ -115,7 +115,7 @@ class IoManager():
 
     def alcoolSignal(self, channel):
         if self.step == 3:
-            self.outputQ.put('pass')
+            self.outputAQ.put('pass')
             self.step = 0
         
     def avaliarAlcool(self):
@@ -163,7 +163,7 @@ class IoManager():
             if self.step == 1:
                 self.avaliarTemperatura()
             elif self.step == 3:
-                self.avaliarAlcool()
+                #self.avaliarAlcool()
                 pass
                 '''elif self.step == 5:
                 self.liberarCatraca()'''
