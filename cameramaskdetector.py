@@ -108,7 +108,7 @@ def videoMain():
     somMascara = False
 
     #0 = Wait, 1 = temperatura, 2 = mascara, 3 = alcool, 4 = rfid, 5 = catraca
-    step = 0
+    step = 1
     lastStep = step
     reset_time = TIME_DEFAULT
     validacao = 0
@@ -150,6 +150,7 @@ def videoMain():
             #pessoa já foi identificada, agora deve fazer os passos para liberar catraca
             if step == 0:
                 #aguardar alguma pessoa passar pelo totem
+                step = 1
                 reset_time = TIME_DEFAULT
                 message = 'wait'
                 if detector.largest_predict != None:
