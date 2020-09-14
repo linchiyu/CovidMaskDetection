@@ -192,8 +192,8 @@ class FaceRecog():
                 self.face = []
 
             time.sleep(0.2)
-            if time.time() - start > 30:
-                self.listaId, self.listaNome, self.listaRfid, self.listaFaceP = self.api_class.getFaceList()
+            if time.time() - start > 60:
+                self.runthreadGetFace()
                 start = time.time()
 
     def collectData(self, cameraClass):
@@ -206,11 +206,16 @@ class FaceRecog():
             if self.imageQ.empty():
                 self.imageQ.put(cameraClass.read())
             time.sleep(0.1)
-            if time.time() - start > 30:
-                self.listaId, self.listaNome, self.listaRfid, self.listaFaceP = self.api_class.getFaceList()
+            if time.time() - start > 60:
+                self.runthreadGetFace()
                 start = time.time()
         self.stopQ.put(True)
 
+    def threadGetFace(self):
+        self.listaId, self.listaNome, self.listaRfid, self.listaFaceP = self.api_class.getFaceList()
+        
+    def runthreadGetFace(self):
+        threading.Thread(target=self.threadGetFace,args=(),daemon=True).start()
 
     def run(self, cameraClass):
         #t = threading.Thread(target=self.camInference,args=(cameraClass,),daemon=True)
