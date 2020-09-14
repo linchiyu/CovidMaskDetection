@@ -97,7 +97,6 @@ def videoMain():
 
     message = 'wait'
     color = GRAY
-    last = message
 
     played_sound_time = 0
     cur_time = 0
@@ -125,32 +124,41 @@ def videoMain():
 
         #detectar pessoa
         if not finalizarProcesso:
+            step = 1
             message = 'recog'
             #aguardar pessoa se aproximar da tela e ser detectada
             idP, nome, rfid, face, location = recog.getPerson()
             if idP == None or idP == -1:
                 #do nothing
                 person.update(-1, '', '', '', [])
-                pass
+            elif idP == -2:
+                person.update(-1, 'Sem cadastro', '', '', [])
             else:
                 #show person and start other detections
                 #recog.getPerson()
                 person.update(idP, nome, rfid, face, location)
                 #iopin.verifyData = True
                 finalizarProcesso = True
+                step_init_time = cur_time
+                lastStep = 0
             if RFID_ATIVO:
                 #verificar cartao do usuario
                 #message = 'cartao'
-                if idxRfid != -1:
+                if idxRfid == -2:
+                    person.update(-1, 'Sem cadastro', '', '', [])
+                elif idxRfid != -1:
                     #cartao PORTAL desativa RFID
                     person.update(recog.listaId[idxRfid], recog.listaNome[idxRfid], 
                         recog.listaRfid[idxRfid], recog.listaFaceP[idxRfid], [])
                     finalizarProcesso = True
+                    step_init_time = cur_time
+                    lastStep = 0
         else:
             #pessoa já foi identificada, agora deve fazer os passos para liberar catraca
             if step == 0:
                 #aguardar alguma pessoa passar pelo totem
                 step = 1
+                step_init_time = cur_time
                 reset_time = TIME_DEFAULT
                 message = 'wait'
                 if detector.largest_predict != None:
@@ -165,13 +173,14 @@ def videoMain():
                         #temperatura normal
                         message = 'mascara'
                         step = 2
+                        step_init_time = cur_time
                     elif result == 'stop':
                         #temperatura incorreta, tente novamente
                         step_init_time = cur_time
                         pass
             elif step == 2:
                 #verificar mascara
-                #message = 'mascara'
+                message = 'mascara'
                 reset_time = TIME_MASCARA
                 if detector.new:
                     detector.new = False
@@ -182,6 +191,7 @@ def videoMain():
                         validacao = validacao + 1
                         if validacao >= 2:
                             step = 3
+                            step_init_time = cur_time
                     else: #stop/sem_mascara
                         #step_init_time = cur_time
                         message = 'stop'
@@ -198,6 +208,7 @@ def videoMain():
                     if result == 'pass':
                         #temperatura normal
                         step = 5
+                        step_init_time = cur_time
                 '''elif step == 4:
                 #verificar cartao do usuario
                 reset_time = TIME_RFID
@@ -243,7 +254,6 @@ def videoMain():
                     reset = False
                     played_sound_time = 0
                     
-            last = message
             if lastStep != step:
                 #step changed
                 iopin.step = step
@@ -285,7 +295,7 @@ def videoMain():
         elif SCREEN_ROTATION == 270:
             image = cv2.rotate(image, cv2.ROTATE_90_COUNTERCLOCKWISE)
 
-        cv2.resize(image, (SCREEN_WIDTH, SCREEN_HEIGHT))
+        image = cv2.resize(image, (SCREEN_WIDTH, SCREEN_HEIGHT))
         cv2.imshow('ArticfoxMaskDetection', image)
         
         k = cv2.waitKey(50) & 0xFF

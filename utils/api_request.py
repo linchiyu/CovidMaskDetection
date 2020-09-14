@@ -71,6 +71,8 @@ class API():
                     except:
                         None
                 #print(idPessoa, nome, face_points)
+            else:
+                self.updateToken()
         except:
             print("Erro na conexão com servidor")
             self.updateToken()
@@ -86,6 +88,8 @@ class API():
                 if response.status_code == 201:
                     data = json.loads(response.content)
                     success = True
+                else:
+                    self.updateToken()
                 erro += 1
             except:
                 print("Erro na conexão com servidor")

@@ -27,7 +27,7 @@ SHOW_BB = False #marca cada deteccao realizada com sucesso
 CONFIDENCE = 0.70
 
 #tempo entre detecções
-TIME_DEFAULT = 8
+TIME_DEFAULT = 10
 TIME_TEMP = TIME_DEFAULT
 TIME_MASCARA = TIME_DEFAULT
 TIME_ALCOOL = TIME_DEFAULT
@@ -45,7 +45,7 @@ if PI:
     SCREEN_ROTATION = 270
 
 #face_recognition
-TAM_ROSTO = 50
+TAM_ROSTO = 55
 
 ###api server
 URL = 'http://localhost'

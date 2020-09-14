@@ -4,8 +4,11 @@ def verificarUsuario(numero, listaRfid):
 	except:
 		return -1
 	for idx, codigoRfid in enumerate(listaRfid):
-		if int(codigoRfid) == numero:
-			print('usr', idx, codigoRfid)
-			return idx
-	return -1
+		try:
+			if int(codigoRfid) == numero:
+				print('usr', idx, codigoRfid)
+				return idx
+		except:
+			None
+	return -2
 

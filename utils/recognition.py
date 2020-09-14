@@ -132,69 +132,71 @@ class FaceRecog():
     def camInference(self):
         start = time.time()
         while self.stopQ.empty():
-            if len(self.listaId) <= 0:
-                if time.time() - start > 10:
-                    self.listaId, self.listaNome, self.listaRfid, self.listaFaceP = self.api_class.getFaceList()
+            try:
+                if len(self.listaId) <= 0:
+                    continue
+                img_raw = self.imageQ.get()
+                small_frame = cv2.resize(img_raw, (0, 0), fx=0.25, fy=0.25)
+                rgb_small_frame = small_frame[:, :, ::-1]
+                faces = face_recognition.face_locations(rgb_small_frame)
+                if len(faces) > 0:
+                    self.extractLargestFace(faces)
+                    if self.largestSize > self.TAM_ROSTO:
+                        face_encodings = face_recognition.face_encodings(rgb_small_frame, self.face_locations)
+                        for face_encoding in face_encodings:
+                            # See if the face is a match for the known face(s)
+                            matches = face_recognition.compare_faces(self.listaFaceP, face_encoding)
+
+                            face_distances = face_recognition.face_distance(self.listaFaceP, face_encoding)
+                            try:
+                                best_match_index = np.argmin(face_distances)
+                            except:
+                                best_match_index = 0
+                            if best_match_index < 0:
+                                best_match_index = 0
+                            if matches[best_match_index]:
+                                first_match_index = best_match_index
+                                data = (self.listaId[first_match_index], self.listaNome[first_match_index],
+                                    self.listaRfid[first_match_index], self.listaFaceP[first_match_index],
+                                    self.face_locations, self.largestSize)
+                                try:
+                                    self.dataQ.get_nowait()
+                                except:
+                                    None
+                                self.dataQ.put(data)
+                                self.id = self.listaId[first_match_index]
+                                self.nome = self.listaNome[first_match_index]
+                                self.rfid = self.listaRfid[first_match_index]
+                                self.face = self.listaFaceP[first_match_index]
+                            else:
+                                data = (-2, 'Não identificado', '0', [], self.face_locations, self.largestSize)
+                                try:
+                                    self.dataQ.get_nowait()
+                                except:
+                                    None
+                                self.dataQ.put(data)
+                                self.id = 0
+                                self.nome = 'desconhecido'
+                                self.rfid = '0'
+                                self.face = []
+                else:
+                    data = (-1, 'Não identificado', '0', [], self.face_locations, self.largestSize)
+                    try:
+                        self.dataQ.get_nowait()
+                    except:
+                        None
+                    self.dataQ.put(data)
+                    self.id = 0
+                    self.nome = 'desconhecido'
+                    self.rfid = '0'
+                    self.face = []
+
+                time.sleep(0.2)
+                if time.time() - start > 60:
+                    self.runthreadGetFace()
                     start = time.time()
-                continue
-            img_raw = self.imageQ.get()
-            small_frame = cv2.resize(img_raw, (0, 0), fx=0.25, fy=0.25)
-            rgb_small_frame = small_frame[:, :, ::-1]
-            faces = face_recognition.face_locations(rgb_small_frame)
-            if len(faces) > 0:
-                self.extractLargestFace(faces)
-                if self.largestSize > self.TAM_ROSTO:
-                    face_encodings = face_recognition.face_encodings(rgb_small_frame, self.face_locations)
-                    for face_encoding in face_encodings:
-                        # See if the face is a match for the known face(s)
-                        matches = face_recognition.compare_faces(self.listaFaceP, face_encoding)
-
-                        face_distances = face_recognition.face_distance(self.listaFaceP, face_encoding)
-                        try:
-                            best_match_index = np.argmin(face_distances)
-                        except:
-                            best_match_index = 0
-                        if matches[best_match_index]:
-                            first_match_index = best_match_index
-                            data = (self.listaId[first_match_index], self.listaNome[first_match_index],
-                                self.listaRfid[first_match_index], self.listaFaceP[first_match_index],
-                                self.face_locations, self.largestSize)
-                            try:
-                                self.dataQ.get_nowait()
-                            except:
-                                None
-                            self.dataQ.put(data)
-                            self.id = self.listaId[first_match_index]
-                            self.nome = self.listaNome[first_match_index]
-                            self.rfid = self.listaRfid[first_match_index]
-                            self.face = self.listaFaceP[first_match_index]
-                        else:
-                            data = (-1, 'Não identificado', '0', [], self.face_locations, self.largestSize)
-                            try:
-                                self.dataQ.get_nowait()
-                            except:
-                                None
-                            self.dataQ.put(data)
-                            self.id = 0
-                            self.nome = 'desconhecido'
-                            self.rfid = '0'
-                            self.face = []
-            else:
-                data = (-1, 'Não identificado', '0', [], self.face_locations, self.largestSize)
-                try:
-                    self.dataQ.get_nowait()
-                except:
-                    None
-                self.dataQ.put(data)
-                self.id = 0
-                self.nome = 'desconhecido'
-                self.rfid = '0'
-                self.face = []
-
-            time.sleep(0.2)
-            if time.time() - start > 60:
-                self.runthreadGetFace()
-                start = time.time()
+            except:
+                None
 
     def collectData(self, cameraClass):
         start = time.time()
@@ -205,7 +207,7 @@ class FaceRecog():
 
             if self.imageQ.empty():
                 self.imageQ.put(cameraClass.read())
-            time.sleep(0.1)
+            time.sleep(0.2)
             if time.time() - start > 60:
                 self.runthreadGetFace()
                 start = time.time()
