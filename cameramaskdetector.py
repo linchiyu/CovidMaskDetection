@@ -192,11 +192,10 @@ def videoMain():
                 #verificar alcool gel
                 reset_time = TIME_ALCOOL
                 message = 'alcool'
-                if not iopin.outputQ.empty():
-                    result = iopin.outputQ.get()
+                if not iopin.outputAQ.empty():
+                    result = iopin.outputAQ.get()
                     if result == 'pass':
                         #temperatura normal
-                        usuario = None
                         step = 5
                 '''elif step == 4:
                 #verificar cartao do usuario
@@ -224,13 +223,13 @@ def videoMain():
                     if TEST:
                         pass
                     else:
-                        api_class.createAcesso(idPessoa=person.id)
+                        api_class.loopCreateAcesso(idPessoa=person.id)
                 finalizarProcesso = False
                 idxRfid = -1
-                step = 0
+                step = 1
 
             if iopin.contagem >= CAPACIDADE_PESSOAS:
-                step = 0
+                step = 1
                 message = 'limite'
 
             if play:
@@ -248,6 +247,7 @@ def videoMain():
                 #step changed
                 iopin.step = step
                 iopin.outputQ.queue.clear()
+                iopin.outputAQ.queue.clear()
                 step_init_time = cur_time
                 validacao = 0
                 codigo_rfid = ''

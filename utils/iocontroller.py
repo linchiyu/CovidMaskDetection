@@ -70,6 +70,7 @@ class IoManager():
         self.stop = False
         #self.controlQ = Queue() #true para liberar catraca, false para desligar programa
         self.outputQ = Queue() #saída de informações de GPIO
+        self.outputAQ = Queue() #saída de informações de GPIO
 
 
     def setHigh(self, pin):
@@ -122,7 +123,7 @@ class IoManager():
             pass
         else:
             print('avaliando sensor alcool GPIO')
-            self.outputQ.put('pass')
+            self.outputAQ.put('pass')
             self.step = 0
 
     def liberarCatraca(self):
