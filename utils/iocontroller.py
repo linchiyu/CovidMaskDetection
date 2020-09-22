@@ -87,21 +87,22 @@ class IoManager():
                 x = GPIO.wait_for_edge(self.temperatura, GPIO.FALLING, timeout=300)
                 if x == None:
                     self.outputQ.put('pass')
-                    print('pass')
+                    #print('pass')
                     self.step = 0
                 else:
                     GPIO.wait_for_edge(self.temperatura, GPIO.RISING, timeout=500)
                     self.outputQ.put('stop')
-                    print('stop')
+                    #print('stop')
         else:
             print('avaliando temperatura GPIO')
             self.outputQ.put('pass')
             self.step = 0
 
     def alcoolSignal(self, channel):
-        if self.step == 3:
+        '''if self.step == 3:
             self.outputAQ.put('pass')
-            self.step = 0
+            self.step = 0'''
+        self.outputAQ.put('pass')
         
     def avaliarAlcool(self):
         if self.has_GPIO:

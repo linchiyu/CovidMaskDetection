@@ -146,7 +146,10 @@ def videoMain():
                 if result == 'pass':
                     #temperatura normal
                     usuario = None
-                    step = 4
+                    if RFID_ATIVO:
+                        step = 4
+                    else:
+                        step = 5
         elif step == 4:
             #verificar cartao do usuario
             reset_time = TIME_RFID
@@ -169,12 +172,13 @@ def videoMain():
 
         if (cur_time - step_init_time) > reset_time and step != 0 and lastStep != 0:
             step = 0
-            print('reset')
+            #print('reset')
 
 
         if play:
             play = False
             played_sound_time = cur_time
+            sound.soundQ.queue.clear()
             sound.soundQ.put(message)
         if reset:
             if (cur_time - played_sound_time) > SOUND_TIME:
