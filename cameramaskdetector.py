@@ -1,16 +1,19 @@
+from settings import *
 import cv2
 from utils import cameraThread
 from utils.interface import Interface
 from utils.soundManager import SoundManager
+if TF_LITE:
+    from utils.face_class import MaskDetectorLite
+else:
+    from utils.face_class import MaskDetector
+from utils.iocontroller import IoManager
+from utils import rfid
 import time
-from settings import *
+import sys
 import uuid
 import hashlib, binascii, os
 import logging
-if TF_LITE:
-    from utils.face_class import MaskDetectorLite as MaskDetector
-else:
-    from utils.face_class import MaskDetector
 
 def get_id():
     # Extract serial from cpuinfo file
@@ -45,62 +48,129 @@ def verify_key():
     return pwdhash == stored_password
 
 def videoMain():
+    global RFID_ATIVO
     GREEN = (85,201,0)
     RED = (2,1,211)
     YELLOW = (8,191,253)
+    GRAY = (105,105,105)
     
     cam = cameraThread.iniciarCamera(camera=CAMERA, width=WIDTH, height=HEIGHT, rotation=ROTATION)
     sound = SoundManager()
     sound.run()
-    detector = MaskDetector(CONFIDENCE)
+    if TF_LITE:
+        detector = MaskDetectorLite(CONFIDENCE)
+    else:
+        detector = MaskDetector(CONFIDENCE)
     detector.run(cam)
     interface = Interface()
+    iopin = IoManager()
+    iopin.run()
 
     if FULL_SCREEN:
         cv2.namedWindow('ArticfoxMaskDetection', cv2.WINDOW_FREERATIO)
         cv2.setWindowProperty('ArticfoxMaskDetection', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
     message = 'wait'
-    color = YELLOW
+    color = GRAY
     last = message
 
     played_sound_time = 0
     cur_time = 0
+    step_init_time = time.time()
+    codigo_rfid = ''
     play = False
     reset = False
+    somMascara = False
 
+    #0 = Wait, 1 = temperatura, 2 = mascara, 3 = alcool, 4 = rfid, 5 = catraca
+    step = 0
+    lastStep = step
+    reset_time = TIME_DEFAULT
+    validacao = 0
+    usr = None
+    usuario = None
 
     while True:
         image = cam.read()
 
         cur_time = time.time()
 
-        if detector.new:
-            detector.new = False
-            if detector.largest_predict == None: #wait
-                if last == 'wait':
-                    message = 'wait'
-                    color = YELLOW
-                    reset = True
-                last = 'wait'
-            elif detector.largest_predict[0] == 0: #pass/com_mascara
-                if last == 'pass':
-                    message = 'pass'
-                    color = GREEN
-                    if (cur_time - played_sound_time) > SOUND_WAIT_TIME:
-                        play = True
-                elif last == 'stop':
-                    reset = True
-                last = 'pass'
-            else: #stop/sem_mascara
-                if last == 'stop':
+        if step == 0:
+            #aguardar alguma pessoa passar pelo totem
+            iopin.outputQ.queue.clear()
+            iopin.outputAQ.queue.clear()
+            reset_time = TIME_DEFAULT
+            message = 'wait'
+            if detector.largest_predict != None:
+                step = 1
+        elif step == 1:
+            #verificar temperatura
+            reset_time = TIME_TEMP
+            message = 'temperatura'
+            if not iopin.outputQ.empty():
+                result = iopin.outputQ.get()
+                if result == 'pass':
+                    #temperatura normal
+                    message = 'mascara'
+                    step = 2
+                elif result == 'stop':
+                    #temperatura incorreta, tente novamente
+                    step_init_time = cur_time
+                    pass
+        elif step == 2:
+            #verificar mascara
+            #message = 'mascara'
+            reset_time = TIME_MASCARA
+            if detector.new:
+                detector.new = False
+                if detector.largest_predict == None: #wait
+                    validacao = 0
+                    pass
+                elif detector.largest_predict[0] == 0: #pass/com_mascara
+                    validacao = validacao + 1
+                    if validacao >= 2:
+                        step = 3
+                else: #stop/sem_mascara
+                    step_init_time = cur_time
                     message = 'stop'
-                    color = RED
-                    if (cur_time - played_sound_time) > SOUND_WAIT_TIME:
+                    if somMascara == True:
+                        somMascara = False
                         play = True
-                elif last == 'pass':
-                    reset = True
-                last = 'stop'
+                    validacao = 0
+        elif step == 3:
+            #verificar alcool gel
+            reset_time = TIME_ALCOOL
+            message = 'alcool'
+            if not iopin.outputAQ.empty():
+                result = iopin.outputAQ.get()
+                if result == 'pass':
+                    #temperatura normal
+                    usuario = None
+                    step = 4
+        elif step == 4:
+            #verificar cartao do usuario
+            reset_time = TIME_RFID
+            if RFID_ATIVO:
+                message = 'cartao'
+                if usr != None:
+                    #cartao PORTAL desativa RFID
+                    if usr['numero'] == 6042777:
+                        RFID_ATIVO = False
+                    print(usr['nome'], usr['empresa'])
+                    usuario = usr
+                    step = 5
+            else:
+                step = 5
+                continue
+        elif step == 5:
+            #catraca liberada
+            message = 'catraca'
+            reset_time = TIME_CATRACA
+
+        if (cur_time - step_init_time) > reset_time and step != 0 and lastStep != 0:
+            step = 0
+            print('reset')
+
 
         if play:
             play = False
@@ -110,6 +180,21 @@ def videoMain():
             if (cur_time - played_sound_time) > SOUND_TIME:
                 reset = False
                 played_sound_time = 0
+                
+        last = message
+        if lastStep != step:
+            #step changed
+            iopin.step = step
+            #iopin.outputQ.queue.clear()
+            step_init_time = cur_time
+            validacao = 0
+            codigo_rfid = ''
+            usr = None
+            play = True
+            somMascara = True
+            if step == 5:
+                iopin.liberar()
+            lastStep = step
         
         if SHOW_BB:
             image = detector.draw(image)
@@ -118,6 +203,12 @@ def videoMain():
         image = interface.insertMessage(image, message)
         image = interface.insertLogo(image)
         image = interface.insertLogo2(image)
+        
+        if step == 5:
+            if usuario != None:
+                registroPonto = time.strftime("%d/%m/%Y %H:%M:%S", time.gmtime()) + ' - ' + usuario['nome'] + '['+ usuario['empresa'] + ']'
+                image = cv2.putText(image, registroPonto, (30, 30), cv2.FONT_HERSHEY_SIMPLEX,  
+                       0.6, (255,255,255), 1, cv2.LINE_AA)
 
         if SCREEN_ROTATION == 0:
             None
@@ -128,14 +219,24 @@ def videoMain():
         elif SCREEN_ROTATION == 270:
             image = cv2.rotate(image, cv2.ROTATE_90_COUNTERCLOCKWISE)
 
-        image = cv2.resize(image, (SCREEN_WIDTH, SCREEN_HEIGHT))
+        cv2.resize(image, (SCREEN_WIDTH, SCREEN_HEIGHT))
         cv2.imshow('ArticfoxMaskDetection', image)
         
         k = cv2.waitKey(50) & 0xFF
         if k == ord("q") or k == ord("Q") or k == 27:
             break
+        elif k == ord("p"):
+            step = step+1
+        elif k == 13 or k == 10:
+            usr = rfid.verificarUsuario(codigo_rfid)
+            #print(codigo_rfid)
+            codigo_rfid = ''
+        elif k != 255:
+            codigo_rfid = codigo_rfid + chr(k)
+        #print(k)
 
     sound.soundQ.put('False')
+    iopin.stop = True
     detector.stop = True
     cam.stop()
     cv2.destroyAllWindows()
@@ -156,6 +257,9 @@ def main():
             logger.log(logging.ERROR, "Licenca invalida. " + str(get_id()))
     except Exception:
         logger.exception("Fatal error in main loop")
+    finally:
+        os._exit(1)
+        sys.exit("Program main exit")
 
 
 if __name__ == '__main__':

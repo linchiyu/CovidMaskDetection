@@ -98,13 +98,14 @@ class MaskDetector():
                 if largest_size < size:
                     largest = (class_id, conf, xmin, ymin, xmax, ymax)
                     largest_size = size
-        #print(largest_size)
-        if largest_size != None and largest_size < 170:
-            return None
 
-        self.predicts = output_info
-        self.largest_predict = largest
+
         self.new = True
+        self.predicts = output_info
+        if largest_size != None and largest_size < 170:
+            self.largest_predict = None
+            return None
+        self.largest_predict = largest
 
         return output_info
 
@@ -136,7 +137,6 @@ class MaskDetector():
                 if largest_size < size:
                     largest = (class_id, conf, xmin, ymin, xmax, ymax)
                     largest_size = size
-        #print(largest_size)
         if largest_size != None and largest_size < 170:
             return None
         return largest
@@ -253,13 +253,13 @@ class MaskDetectorLite():
                 if largest_size < size:
                     largest = (class_id, conf, xmin, ymin, xmax, ymax)
                     largest_size = size
-        #print(largest_size)
-        if largest_size != None and largest_size < 170:
-            return None
 
-        self.predicts = output_info
-        self.largest_predict = largest
         self.new = True
+        self.predicts = output_info
+        if largest_size != None and largest_size < 170:
+            self.largest_predict = None
+            return None
+        self.largest_predict = largest
 
         return output_info
 
@@ -291,7 +291,6 @@ class MaskDetectorLite():
                 if largest_size < size:
                     largest = (class_id, conf, xmin, ymin, xmax, ymax)
                     largest_size = size
-        #print(largest_size)
         if largest_size != None and largest_size < 170:
             return None
         return largest

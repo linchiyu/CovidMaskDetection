@@ -1,3 +1,4 @@
+#downloaded from https://ttsmp3.com/
 from time import sleep
 from threading import Thread
 from queue import Queue
@@ -16,18 +17,33 @@ class SoundManager():
         import pygame
         pygame.mixer.init()
         while True:
+            if pygame.mixer.music.get_busy() == True:
+                continue
             if not self.soundQ.empty():
                 tipo = self.soundQ.get()
                 if tipo == 'pass':
                     pygame.mixer.music.load(self.path+'pass.mp3')
                     pygame.mixer.music.play()
-                    while pygame.mixer.music.get_busy() == True:
-                        continue
                 elif tipo == 'stop':
                     pygame.mixer.music.load(self.path+'stop.mp3')
                     pygame.mixer.music.play()
-                    while pygame.mixer.music.get_busy() == True:
-                        continue
+                elif tipo == 'temperatura':
+                    pygame.mixer.music.load(self.path+'temperatura.mp3')
+                    pygame.mixer.music.play()
+                elif tipo == 'mascara':
+                    pygame.mixer.music.load(self.path+'mascara.mp3')
+                    pygame.mixer.music.play()
+                elif tipo == 'alcool':
+                    pygame.mixer.music.load(self.path+'alcool.mp3')
+                    pygame.mixer.music.play()
+                elif tipo == 'cartao':
+                    pygame.mixer.music.load(self.path+'cartao.mp3')
+                    pygame.mixer.music.play()
+                elif tipo == 'catraca':
+                    pygame.mixer.music.load(self.path+'catraca.mp3')
+                    pygame.mixer.music.play()
+                elif tipo == 'wait':
+                    None
                 else:
                     break
             sleep(0.05)
