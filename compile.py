@@ -12,7 +12,7 @@ ext_modules = [
     Extension(compiled_path+"cameramaskdetector",  ["cameramaskdetector.py"]),
     Extension(compiled_path+"utils.anchor_decode",  ["utils/anchor_decode.py"]),
     Extension(compiled_path+"utils.anchor_generator",  ["utils/anchor_generator.py"]),
-    Extension(compiled_path+"utils.cameraThread",  ["utils/cameraThread.py"]),
+    #Extension(compiled_path+"utils.cameraThread",  ["utils/cameraThread.py"]),
     Extension(compiled_path+"utils.face_class",  ["utils/face_class.py"]),
     Extension(compiled_path+"utils.imgutil",  ["utils/imgutil.py"]),
     Extension(compiled_path+"utils.interface",  ["utils/interface.py"]),
