@@ -73,9 +73,11 @@ class API():
                 #print(idPessoa, nome, face_points)
             else:
                 self.updateToken()
+                return self.getFaceList()
         except:
             print("Erro na conexão com servidor")
             self.updateToken()
+            return self.getFaceList()
         return idPessoa, nome, codigo, face_points
 
     def createAcesso(self, idPessoa=1, datahora=str(datetime.now()), tipo="entrada"):

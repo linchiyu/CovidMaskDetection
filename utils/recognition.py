@@ -131,6 +131,8 @@ class FaceRecog():
 
     def camInference(self):
         start = time.time()
+        self.api_class.user = 'userTotem2'
+        self.api_class.password = 'totemUsuario2020'
         while self.stopQ.empty():
             try:
                 if len(self.listaId) <= 0:

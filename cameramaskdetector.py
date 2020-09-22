@@ -124,7 +124,10 @@ def videoMain():
 
         #detectar pessoa
         if not finalizarProcesso:
+            play = False
             step = 1
+            iopin.outputQ.queue.clear()
+            iopin.outputAQ.queue.clear()
             message = 'recog'
             #aguardar pessoa se aproximar da tela e ser detectada
             idP, nome, rfid, face, location = recog.getPerson()
@@ -257,8 +260,6 @@ def videoMain():
             if lastStep != step:
                 #step changed
                 iopin.step = step
-                iopin.outputQ.queue.clear()
-                iopin.outputAQ.queue.clear()
                 step_init_time = cur_time
                 validacao = 0
                 codigo_rfid = ''

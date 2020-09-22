@@ -1,6 +1,6 @@
 TEST = False
 
-PI = True
+PI = False
 CAMERA = 0 #0, 1, 'pi'
 #default 270
 ROTATION = 0 #0, 90, 180, 270
@@ -48,6 +48,6 @@ if PI:
 TAM_ROSTO = 55
 
 ###api server
-URL = 'http://localhost'
+URL = 'http://localhost:8000'
 USUARIO = 'api_client'
 SENHA = 'api_client_secret_key2020'
