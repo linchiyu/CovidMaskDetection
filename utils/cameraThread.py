@@ -87,6 +87,7 @@ class WebcamVideoStream:
             self.webcam = cv2.VideoCapture(cam_src)
         except:
             print ("Erro na camera! Verifique se a camera", cam_src, "está instalada!")
+            raise
             sys.exit(1)
         self.webcam.set(3, cam_width)
         self.webcam.set(4, cam_height)

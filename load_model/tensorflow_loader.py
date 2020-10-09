@@ -1,5 +1,9 @@
 # -*- encoding=utf-8 -*-
-import tensorflow as tf
+try:
+    import tensorflow.compat.v1 as tf
+    tf.disable_v2_behavior()
+except:
+    import tensorflow as tf
 import numpy as np
 
 #PATH_TO_TENSORFLOW_MODEL = 'models/face_mask_detection.pb'

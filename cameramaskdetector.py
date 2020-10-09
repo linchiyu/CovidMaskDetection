@@ -1,5 +1,6 @@
 from settings import *
 import cv2
+import numpy as np
 from utils import cameraThread
 from utils.interface import Interface
 from utils.soundManager import SoundManager
@@ -14,6 +15,8 @@ import sys
 import uuid
 import hashlib, binascii, os
 import logging
+
+from multiprocessing import shared_memory
 
 def get_id():
     # Extract serial from cpuinfo file
@@ -89,6 +92,10 @@ def videoMain():
     validacao = 0
     usr = None
     usuario = None
+
+    nbytes = SCREEN_WIDTH*SCREEN_HEIGHT*3
+    shm = shared_memory.SharedMemory(name='cameraframe', create=True, size=nbytes)
+    sharedimg = np.ndarray((SCREEN_HEIGHT, SCREEN_WIDTH, 3), dtype=np.uint8, buffer=shm.buf)
 
     while True:
         image = cam.read()
@@ -224,8 +231,9 @@ def videoMain():
             image = cv2.rotate(image, cv2.ROTATE_90_COUNTERCLOCKWISE)
 
         image = cv2.resize(image, (SCREEN_WIDTH, SCREEN_HEIGHT))
+        sharedimg[:] = image[:]
         cv2.imshow('ArticfoxMaskDetection', image)
-        
+
         k = cv2.waitKey(50) & 0xFF
         if k == ord("q") or k == ord("Q") or k == 27:
             break
@@ -261,6 +269,7 @@ def main():
             logger.log(logging.ERROR, "Licenca invalida. " + str(get_id()))
     except Exception:
         logger.exception("Fatal error in main loop")
+        raise
     finally:
         os._exit(1)
         sys.exit("Program main exit")

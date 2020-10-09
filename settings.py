@@ -1,4 +1,4 @@
-PI = True
+PI = False
 CAMERA = 0 #0, 1, 'pi'
 #default 270
 ROTATION = 0 #0, 90, 180, 270
@@ -9,12 +9,12 @@ CANVAS_WIDTH = 10
 CANVAS_HEIGHT = 125
 
 #resolution 1280x720
-FULL_SCREEN = True
+FULL_SCREEN = False
 SCREEN_WIDTH = 1280
 SCREEN_HEIGHT = 720
 
 #default 270
-SCREEN_ROTATION = 0 #0, 90, 180, 270
+SCREEN_ROTATION = 270 #0, 90, 180, 270
 
 SOUND_TIME = 4 #tempo em segundos para reproduzir outro som
 SOUND_WAIT_TIME = 13 #tempo em segundos para reproduzir o mesmo som
