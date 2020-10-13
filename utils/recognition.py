@@ -62,13 +62,14 @@ class Person():
 
 class FaceRecog():
     """face recognition from face_recognition"""
-    def __init__(self, listaId, listaNome, listaRfid, listaFaceP, api_class, TAM_ROSTO=60):
+    def __init__(self, listaId, listaNome, listaRfid, listaFaceP, api_class, TOLERANCE=0.5, TAM_ROSTO=60):
         self.listaId = listaId
         self.listaNome = listaNome
         self.listaRfid = listaRfid
         self.listaFaceP = listaFaceP
 
         self.TAM_ROSTO = TAM_ROSTO
+        self.TOLERANCE = TOLERANCE
 
         self.api_class = api_class
 
@@ -147,7 +148,7 @@ class FaceRecog():
                         face_encodings = face_recognition.face_encodings(rgb_small_frame, self.face_locations)
                         for face_encoding in face_encodings:
                             # See if the face is a match for the known face(s)
-                            matches = face_recognition.compare_faces(self.listaFaceP, face_encoding)
+                            #matches = face_recognition.compare_faces(self.listaFaceP, face_encoding)
 
                             face_distances = face_recognition.face_distance(self.listaFaceP, face_encoding)
                             try:
@@ -156,7 +157,7 @@ class FaceRecog():
                                 best_match_index = 0
                             if best_match_index < 0:
                                 best_match_index = 0
-                            if matches[best_match_index]:
+                            if face_distances[best_match_index] <= self.TOLERANCE:
                                 first_match_index = best_match_index
                                 data = (self.listaId[first_match_index], self.listaNome[first_match_index],
                                     self.listaRfid[first_match_index], self.listaFaceP[first_match_index],
