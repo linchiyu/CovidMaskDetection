@@ -183,7 +183,7 @@ def videoMain():
                         pass
             elif step == 2:
                 #verificar mascara
-                message = 'mascara'
+                #message = 'mascara'
                 reset_time = TIME_MASCARA
                 if detector.new:
                     detector.new = False
