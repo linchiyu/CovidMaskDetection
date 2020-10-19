@@ -95,19 +95,22 @@ class IoManager():
         
     def avaliarTemperatura(self):
         if self.has_GPIO:
-            x = GPIO.wait_for_edge(self.temperatura, GPIO.RISING, timeout=TIME_TEMP*1000)
-            if x == None:
-                pass
-            else:
-                x = GPIO.wait_for_edge(self.temperatura, GPIO.FALLING, timeout=300)
+            now = time.time()
+            while time.time() - now <= TIME_TEMP*1000:
+                x = GPIO.wait_for_edge(self.temperatura, GPIO.RISING, timeout=250)
                 if x == None:
-                    self.outputQ.put('pass')
-                    print('pass')
-                    self.step = 0
+                    pass
                 else:
-                    GPIO.wait_for_edge(self.temperatura, GPIO.RISING, timeout=500)
-                    self.outputQ.put('stop')
-                    print('stop')
+                    x = GPIO.wait_for_edge(self.temperatura, GPIO.FALLING, timeout=300)
+                    if x == None:
+                        self.outputQ.put('pass')
+                        print('pass')
+                        self.step = 0
+                    else:
+                        GPIO.wait_for_edge(self.temperatura, GPIO.RISING, timeout=500)
+                        self.outputQ.put('stop')
+                        print('stop')
+                    break
         else:
             print('avaliando temperatura GPIO')
             self.outputQ.put('pass')
