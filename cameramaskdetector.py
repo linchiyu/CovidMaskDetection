@@ -236,7 +236,7 @@ def videoMain():
         	sharedimg[:] = image[:]
         cv2.imshow('ArticfoxMaskDetection', image)
 
-        k = cv2.waitKey(50) & 0xFF
+        k = cv2.waitKey(10) & 0xFF
         if k == ord("q") or k == ord("Q") or k == 27:
             break
         elif k == ord("p"):

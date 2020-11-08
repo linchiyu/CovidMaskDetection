@@ -165,8 +165,10 @@ class IoManager():
         while True:
             if self.step == 1:
                 self.avaliarTemperatura()
+                time.sleep(0.1)
             elif self.step == 3:
                 #self.avaliarAlcool()
+                time.sleep(0.1)
                 pass
                 '''elif self.step == 5:
                 self.liberarCatraca()'''
