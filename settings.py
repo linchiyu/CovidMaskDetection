@@ -36,6 +36,8 @@ CAPACIDADE_PESSOAS = 100
 
 RFID_ATIVO = False
 
+SHARED_MEMORY = False
+
 if PI:
     CAMERA = 'pi'
     ROTATION = 270

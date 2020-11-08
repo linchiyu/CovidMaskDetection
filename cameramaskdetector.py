@@ -15,8 +15,8 @@ import sys
 import uuid
 import hashlib, binascii, os
 import logging
-
-from multiprocessing import shared_memory
+if SHARED_MEMORY:
+	from multiprocessing import shared_memory
 
 def get_id():
     # Extract serial from cpuinfo file
@@ -93,9 +93,10 @@ def videoMain():
     usr = None
     usuario = None
 
-    nbytes = SCREEN_WIDTH*SCREEN_HEIGHT*3
-    shm = shared_memory.SharedMemory(name='cameraframe', create=True, size=nbytes)
-    sharedimg = np.ndarray((SCREEN_HEIGHT, SCREEN_WIDTH, 3), dtype=np.uint8, buffer=shm.buf)
+    if SHARED_MEMORY:
+    	nbytes = SCREEN_WIDTH*SCREEN_HEIGHT*3
+    	shm = shared_memory.SharedMemory(name='cameraframe', create=True, size=nbytes)
+    	sharedimg = np.ndarray((SCREEN_HEIGHT, SCREEN_WIDTH, 3), dtype=np.uint8, buffer=shm.buf)
 
     while True:
         image = cam.read()
@@ -231,7 +232,8 @@ def videoMain():
             image = cv2.rotate(image, cv2.ROTATE_90_COUNTERCLOCKWISE)
 
         image = cv2.resize(image, (SCREEN_WIDTH, SCREEN_HEIGHT))
-        sharedimg[:] = image[:]
+        if SHARED_MEMORY:
+        	sharedimg[:] = image[:]
         cv2.imshow('ArticfoxMaskDetection', image)
 
         k = cv2.waitKey(50) & 0xFF
@@ -252,6 +254,9 @@ def videoMain():
     detector.stop = True
     cam.stop()
     cv2.destroyAllWindows()
+    if SHARED_MEMORY:
+    	shm.close()
+    	shm.unlink()
 
 
 def main():
