@@ -46,6 +46,7 @@ if PI:
 
 #face_recognition
 TAM_ROSTO = 55
+FACE_DISTANCE = 0.5
 
 ###api server
 URL = 'http://localhost:8000'

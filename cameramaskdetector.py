@@ -86,7 +86,7 @@ def videoMain():
     else:
         ids, known_face_names, rfid_l, known_face_encodings = api_class.getFaceList()
 
-    recog = FaceRecog(ids, known_face_names, rfid_l, known_face_encodings, api_class, TAM_ROSTO)
+    recog = FaceRecog(ids, known_face_names, rfid_l, known_face_encodings, api_class, TOLERANCE=FACE_DISTANCE, TAM_ROSTO=TAM_ROSTO)
     recog.run(cam)
 
     ######
