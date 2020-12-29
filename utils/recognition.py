@@ -88,10 +88,10 @@ class FaceRecog():
         else:
             input_shape = input_shape[1:3]
 
-        #self.updateFaceList()
-        #scheduler = BackgroundScheduler()
-        #job = scheduler.add_job(self.updateFaceList, 'interval', args=[], seconds=self.UPDATE_FACELIST_TIME)
-        #scheduler.start()
+        self.updateFaceList()
+        scheduler = BackgroundScheduler()
+        job = scheduler.add_job(self.updateFaceList, 'interval', args=[], seconds=self.UPDATE_FACELIST_TIME)
+        scheduler.start()
         print('iniciando reconhecimento')
         while self.stopQ.empty():
             if not self.commandQ.empty():
