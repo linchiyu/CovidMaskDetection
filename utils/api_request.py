@@ -25,7 +25,7 @@ class API():
 
         self.cookies = {'auth': self.token}
 
-        self.updateToken()
+        #self.updateToken()
 
     def registrarUsuario(self, usuario, senha):
         try:
@@ -60,16 +60,15 @@ class API():
                 print("Obtendo lista de usuarios")
                 data = json.loads(response.content)
                 for d in data:
-                    if d.get('ativo') and d.get('foto_valida'):
-                        d['face_encoded'] = getFaceArray(d.get('face_encoded'))
-                        pessoa_list.append(d)
-                        face_list.append(d.get('face_encoded'))
+                    d['face_encoded'] = getFaceArray(d.get('face_encoded'))
+                    pessoa_list.append(d)
+                    face_list.append(d.get('face_encoded', []))
         except:
             print("Erro na conexão com servidor")
         return pessoa_list, face_list
 
     def createAcesso(self, idPessoa=1, datahora=str(datetime.now()), tipo="entrada"):
-        data = {"data": datahora, "tipoAcesso": tipo, "fkpessoa": idPessoa}
+        data = {"data": datahora, "tipoAcesso": tipo, "fkPessoa": idPessoa}
         erro = 0
         while erro < 5:
             try:
@@ -94,7 +93,5 @@ if __name__ == '__main__':
 
     USUARIO = 'api_client'
     SENHA = 'api_client_secret_key2020'
-    USUARIO = 'teste1'
-    SENHA = 'testeteste'
     x = API()
-    x.createAcesso(1)
+    x.createAcesso(0)

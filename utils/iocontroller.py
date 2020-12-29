@@ -174,8 +174,6 @@ class IoManager():
                 time.sleep(0.1)
             if self.stopped:
                 break
-        if self.has_GPIO:
-            GPIO.cleanup()
 
     def run(self):
         Thread(target=self.loopGpio, args=(), daemon=True).start()
@@ -188,6 +186,7 @@ class IoManager():
 
     def stop(self):
         self.stopped = True
+        time.sleep(10)
         if self.has_GPIO:
             GPIO.cleanup()
 
