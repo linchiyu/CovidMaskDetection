@@ -67,7 +67,7 @@ class IoManager():
         #0 = sleep, 1 = temperatura, 3 = alcool, 5 = catraca
         self.step = 0
         self.tempTimer = []
-        self.stop = False
+        self.stopped = False
         #self.controlQ = Queue() #true para liberar catraca, false para desligar programa
         self.outputQ = Queue() #saída de informações de GPIO
         self.outputAQ = Queue() #saída de informações de GPIO
@@ -96,7 +96,7 @@ class IoManager():
     def avaliarTemperatura(self):
         if self.has_GPIO:
             now = time.time()
-            while time.time() - now <= TIME_TEMP*1000:
+            while time.time() - now <= TIME_TEMP+1:
                 x = GPIO.wait_for_edge(self.temperatura, GPIO.RISING, timeout=250)
                 if x == None:
                     pass
@@ -106,11 +106,11 @@ class IoManager():
                         self.outputQ.put('pass')
                         print('pass')
                         self.step = 0
+                        break
                     else:
                         GPIO.wait_for_edge(self.temperatura, GPIO.RISING, timeout=500)
                         self.outputQ.put('stop')
                         print('stop')
-                    break
         else:
             print('avaliando temperatura GPIO')
             self.outputQ.put('pass')
@@ -172,16 +172,24 @@ class IoManager():
                 self.liberarCatraca()'''
             else:
                 time.sleep(0.1)
-            if self.stop:
+            if self.stopped:
                 break
         if self.has_GPIO:
             GPIO.cleanup()
 
     def run(self):
         Thread(target=self.loopGpio, args=(), daemon=True).start()
+
+    def threadTemp(self):
+        Thread(target=self.avaliarTemperatura, args=(), daemon=True).start()
         
     def liberar(self):
         Thread(target=self.liberarCatraca, args=(), daemon=True).start()
+
+    def stop(self):
+        self.stopped = True
+        if self.has_GPIO:
+            GPIO.cleanup()
 
 
 if __name__ == '__main__':

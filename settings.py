@@ -7,13 +7,18 @@ ROTATION = 0 #0, 90, 180, 270
 
 WIDTH = 640
 HEIGHT = 480
+CAMERA_OUTPUT_WIDTH = 700
+CAMERA_OUTPUT_HEIGHT = 930
 CANVAS_WIDTH = 10
 CANVAS_HEIGHT = 125
 
 #resolution 1280x720
-FULL_SCREEN = True
-SCREEN_WIDTH = 1280
-SCREEN_HEIGHT = 720
+FULL_SCREEN = False
+SCREEN_WIDTH = 720
+SCREEN_HEIGHT = 1280
+
+SCREEN_WIDTH = 506
+SCREEN_HEIGHT = 900
 
 #default 270
 SCREEN_ROTATION = 0 #0, 90, 180, 270
@@ -23,7 +28,7 @@ SOUND_WAIT_TIME = 13 #tempo em segundos para reproduzir o mesmo som
 CATRACA_TIME = 5 #tempo em segudos para liberar acesso da catrata
 
 TF_LITE = False
-SHOW_BB = False #marca cada deteccao realizada com sucesso
+SHOW_BB = True #marca cada deteccao realizada com sucesso
 CONFIDENCE = 0.70
 
 #tempo entre detecções
@@ -45,8 +50,10 @@ if PI:
     SCREEN_ROTATION = 270
 
 #face_recognition
+RECOG_OBRIGATORIO = False
 TAM_ROSTO = 55
-FACE_DISTANCE = 0.5
+RECOG_TOLERANCE = 0.4
+UPDATE_FACELIST_TIME = 180
 
 ###api server
 URL = 'http://localhost:8000'

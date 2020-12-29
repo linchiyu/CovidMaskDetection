@@ -51,55 +51,39 @@ class API():
         return False
 
     def getFaceList(self):
-        idPessoa = []
-        nome = []
-        codigo = []
-        face_points = []
+        pessoa_list = []
+        face_list = []
         try:
+            self.updateToken()
             response = requests.get(URL+"/api/pessoa/facelist", cookies=self.cookies)
             if response.status_code == 200:
                 print("Obtendo lista de usuarios")
                 data = json.loads(response.content)
                 for d in data:
-                    try:
-                        d['face_encoded'] = getFaceArray(d['face_encoded'])
-                        if len(d['face_encoded']) > 10:
-                            idPessoa.append(d['id'])
-                            nome.append(d['nome'])
-                            codigo.append(d['codigo'])
-                            face_points.append(d['face_encoded'])
-                    except:
-                        None
-                #print(idPessoa, nome, face_points)
-            else:
-                self.updateToken()
-                return self.getFaceList()
+                    if d.get('ativo') and d.get('foto_valida'):
+                        d['face_encoded'] = getFaceArray(d.get('face_encoded'))
+                        pessoa_list.append(d)
+                        face_list.append(d.get('face_encoded'))
         except:
             print("Erro na conexão com servidor")
-            self.updateToken()
-            return self.getFaceList()
-        return idPessoa, nome, codigo, face_points
+        return pessoa_list, face_list
 
     def createAcesso(self, idPessoa=1, datahora=str(datetime.now()), tipo="entrada"):
-        success = False
         data = {"data": datahora, "tipoAcesso": tipo, "fkpessoa": idPessoa}
         erro = 0
-        while not success and erro < 30:
+        while erro < 5:
             try:
+                self.updateToken()
                 response = requests.post(URL+"/api/acesso/new", data=data, cookies=self.cookies)
                 if response.status_code == 201:
                     data = json.loads(response.content)
-                    success = True
-                else:
-                    self.updateToken()
+                    break
                 erro += 1
             except:
                 print("Erro na conexão com servidor")
                 erro += 1
-                self.updateToken()
-                pass
 
-    def loopCreateAcesso(self, idPessoa=1, datahora=str(datetime.now()), tipo="entrada"):
+    def threadCreateAcesso(self, idPessoa=-1, datahora=str(datetime.now()), tipo="entrada"):
         Thread(target=self.createAcesso,args=(idPessoa, datahora, tipo,),daemon=True).start()
 
 if __name__ == '__main__':

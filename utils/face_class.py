@@ -32,7 +32,8 @@ class MaskDetector():
 
         self.predicts = None
         self.largest_predict = None
-        self.stop = False
+        self.pause = False
+        self.stopped = False
         self.new = True
 
 
@@ -138,18 +139,27 @@ class MaskDetector():
         return largest
 
     def camInference(self, cameraClass):
-        while not self.stop:
-            img_raw = cameraClass.read()
-            img_raw = cv2.cvtColor(img_raw, cv2.COLOR_BGR2RGB)
-            self.inference(img_raw,
-                      conf_thresh=self.conf,
-                      iou_thresh=0.5,
-                      target_shape=(260, 260)
-                      )
+        while not self.stopped:
+            if self.pause:
+                self.predicts = None
+                self.largest_predict = None
+                self.new = False
+                time.sleep(0.3)
+            else:
+                img_raw = cameraClass.read()
+                img_raw = cv2.cvtColor(img_raw, cv2.COLOR_BGR2RGB)
+                self.inference(img_raw,
+                          conf_thresh=self.conf,
+                          iou_thresh=0.5,
+                          target_shape=(260, 260)
+                          )
 
     def run(self, cameraClass):
         t = threading.Thread(target=self.camInference,args=(cameraClass,),daemon=True)
         t.start()
+
+    def stop(self):
+        self.stopped = True
       
 
 class MaskDetectorLite():
@@ -177,7 +187,7 @@ class MaskDetectorLite():
 
         self.predicts = None
         self.largest_predict = None
-        self.stop = False
+        self.stopped = False
         self.new = True
 
 
@@ -289,7 +299,7 @@ class MaskDetectorLite():
         return largest
 
     def camInference(self, cameraClass):
-        while not self.stop:
+        while not self.stopped:
             img_raw = cameraClass.read()
             img_raw = cv2.cvtColor(img_raw, cv2.COLOR_BGR2RGB)
             self.inference(img_raw,
@@ -302,4 +312,6 @@ class MaskDetectorLite():
         t = threading.Thread(target=self.camInference,args=(cameraClass,),daemon=True)
         t.start()
 
+    def stop(self):
+        self.stopped = True
 

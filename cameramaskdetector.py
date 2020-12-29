@@ -1,7 +1,6 @@
 from settings import *
 import cv2
 import numpy as np
-import face_recognition
 from utils import cameraThread
 from utils.interface import Interface
 from utils.soundManager import SoundManager
@@ -9,7 +8,7 @@ if TF_LITE:
     from utils.face_class import MaskDetectorLite
 else:
     from utils.face_class import MaskDetector
-from utils.recognition import FaceRecog, Person
+from utils.recognition import FaceRecog
 from utils.iocontroller import IoManager
 from utils import rfid_request
 from utils.api_request import API
@@ -52,6 +51,7 @@ def verify_key():
     pwdhash = binascii.hexlify(pwdhash).decode('ascii')
     return pwdhash == stored_password
 
+
 def videoMain():
     global RFID_ATIVO
     GREEN = (85,201,0)
@@ -67,26 +67,15 @@ def videoMain():
     else:
         detector = MaskDetector(CONFIDENCE)
     detector.run(cam)
+
     interface = Interface()
     iopin = IoManager()
-    iopin.run()
+    #iopin.run()
+
     api_class = API()
 
     #########FACE RECOG####
-    ####TEST DATA### change to  API request
-    if TEST:
-        biden_image = face_recognition.load_image_file("f1.jpg")
-        biden_face_encoding = face_recognition.face_encodings(biden_image)[0]
-        # Create arrays of known face encodings and their names
-        known_face_encodings = [biden_face_encoding]
-        known_face_names = ["lin"]
-        ids = [1]
-        rfid_l = ['1']
-        #END TEST DATA###
-    else:
-        ids, known_face_names, rfid_l, known_face_encodings = api_class.getFaceList()
-
-    recog = FaceRecog(ids, known_face_names, rfid_l, known_face_encodings, api_class, TOLERANCE=FACE_DISTANCE, TAM_ROSTO=TAM_ROSTO)
+    recog = FaceRecog(api_class=api_class, TOLERANCE=RECOG_TOLERANCE, TAM_ROSTO=TAM_ROSTO, UPDATE_FACELIST_TIME=UPDATE_FACELIST_TIME)
     recog.run(cam)
 
     ######
@@ -115,7 +104,15 @@ def videoMain():
     usuario = None
 
     finalizarProcesso = False
-    person = Person()
+    pessoa = {
+        'face_encontrada': False,
+        'face_reconhecida': False,
+        'id': -1,
+        'nome': '',
+        'encoding': []
+    }
+    reconhecimento = False
+    step = 'wait'
 
     while True:
         image = cam.read()
@@ -123,170 +120,130 @@ def videoMain():
         cur_time = time.time()
 
         #detectar pessoa
-        if not finalizarProcesso:
-            play = False
-            step = 1
-            iopin.outputQ.queue.clear()
-            iopin.outputAQ.queue.clear()
-            message = 'recog'
-            #aguardar pessoa se aproximar da tela e ser detectada
-            idP, nome, rfid, face, location = recog.getPerson()
-            if idP == None or idP == -1:
-                #do nothing
-                person.update(-1, '', '', '', [])
-            elif idP == -2:
-                person.update(-1, 'Sem cadastro', '', '', [])
+        if step == 'wait':
+            pessoa['face_encontrada'] = False
+            pessoa['face_reconhecida'] = False
+            pessoa['id'] = -1
+            pessoa['nome'] = ''
+            pessoa['encoding'] = []
+            if RECOG_OBRIGATORIO:
+                message = 'recog'
             else:
-                #show person and start other detections
-                #recog.getPerson()
-                person.update(idP, nome, rfid, face, location)
-                #iopin.verifyData = True
-                finalizarProcesso = True
-                step_init_time = cur_time
-                lastStep = 0
-            if RFID_ATIVO:
-                #verificar cartao do usuario
-                #message = 'cartao'
-                if idxRfid == -2:
-                    person.update(-1, 'Sem cadastro', '', '', [])
-                elif idxRfid != -1:
-                    #cartao PORTAL desativa RFID
-                    person.update(recog.listaId[idxRfid], recog.listaNome[idxRfid], 
-                        recog.listaRfid[idxRfid], recog.listaFaceP[idxRfid], [])
-                    finalizarProcesso = True
-                    step_init_time = cur_time
-                    lastStep = 0
-        else:
-            #pessoa já foi identificada, agora deve fazer os passos para liberar catraca
-            if step == 0:
-                #aguardar alguma pessoa passar pelo totem
-                step = 1
-                step_init_time = cur_time
-                reset_time = TIME_DEFAULT
                 message = 'wait'
-                if detector.largest_predict != None:
-                    step = 1
-            elif step == 1:
-                #verificar temperatura
-                reset_time = TIME_TEMP
+            if recog.data.get('face_encontrada', False):
+                #pessoa detectada, realizar outros passos enquanto faz reconhecimento facial
+                step = 'temperatura'
                 message = 'temperatura'
-                if not iopin.outputQ.empty():
-                    result = iopin.outputQ.get()
-                    if result == 'pass':
-                        #temperatura normal
-                        message = 'mascara'
-                        step = 2
-                        step_init_time = cur_time
-                    elif result == 'stop':
-                        #temperatura incorreta, tente novamente
-                        step_init_time = cur_time
-                        pass
-            elif step == 2:
-                #verificar mascara
-                #message = 'mascara'
-                reset_time = TIME_MASCARA
-                if detector.new:
-                    detector.new = False
-                    if detector.largest_predict == None: #wait
-                        validacao = 0
-                        pass
-                    elif detector.largest_predict[0] == 0: #pass/com_mascara
-                        validacao = validacao + 1
-                        if validacao >= 2:
-                            step = 3
-                            step_init_time = cur_time
-                    else: #stop/sem_mascara
-                        #step_init_time = cur_time
-                        message = 'stop'
-                        if somMascara == True:
-                            somMascara = False
-                            play = True
-                        validacao = 0
-            elif step == 3:
-                #verificar alcool gel
-                reset_time = TIME_ALCOOL
-                message = 'alcool'
-                if not iopin.outputAQ.empty():
-                    result = iopin.outputAQ.get()
-                    if result == 'pass':
-                        #temperatura normal
-                        step = 5
-                        step_init_time = cur_time
-                '''elif step == 4:
-                #verificar cartao do usuario
-                reset_time = TIME_RFID
-                if RFID_ATIVO:
-                    message = 'cartao'
-                    if usr != None:
-                        #cartao PORTAL desativa RFID
-                        if usr['numero'] == 6042777:
-                            RFID_ATIVO = False
-                        print(usr['nome'], usr['empresa'])
-                        usuario = usr
-                        step = 5
+                sound.soundQ.put('temperatura')
+                recog.commandQ.put('only_detection_off')
+                reconhecimento = True
+                iopin.outputQ.queue.clear()
+                iopin.threadTemp()
+                step_init_time = time.time()
+                reset_time = TIME_TEMP
+        #outros passos: alcool, temperatura, gel
+        elif step == 'temperatura':
+            if not iopin.outputQ.empty():
+                result = iopin.outputQ.get()
+                if result == 'pass':
+                    #temperatura normal
+                    message = 'mascara'
+                    step = 'mascara'
+                    detector.pause = False
+                    sound.soundQ.put('mascara')
+                    iopin.outputQ.queue.clear()
+                    step_init_time = time.time()
+                    reset_time = TIME_MASCARA
                 else:
-                    step = 5
-                    continue'''
-            elif step == 5:
-                #catraca liberada
-                message = 'catraca'
-                reset_time = TIME_CATRACA
+                    #pode salvar a informação de que a temperatura não foi aceita
+                    pass
+        elif step == 'mascara':
+            if detector.new:
+                detector.new = False
+                if detector.largest_predict == None: #wait
+                    validacao = 0
+                    pass
+                elif detector.largest_predict[0] == 0: #pass/com_mascara
+                    validacao = validacao + 1
+                    if validacao >= 2:
+                        message = 'alcool'
+                        step = 'alcool'
+                        sound.soundQ.queue.clear()
+                        sound.soundQ.put('alcool')
+                        step_init_time = time.time()
+                        reset_time = TIME_ALCOOL
+                else: #stop/sem_mascara
+                    #step_init_time = cur_time
+                    message = 'stop'
+                    if somMascara == True:
+                        sound.soundQ.queue.clear()
+                        sound.soundQ.put('stop')
+                        step_init_time = time.time()
+                    validacao = 0
+        elif step == 'alcool':
+            if not iopin.outputAQ.empty():
+                result = iopin.outputAQ.get()
+                if result == 'pass':
+                    #temperatura normal
+                    message = 'catraca'
+                    step = 'catraca'
 
-            if (cur_time - step_init_time) > reset_time and step != 0 and lastStep != 0:
-                if step == 5:
-                    #registrar ponto
-                    if TEST:
-                        pass
+                    reconhecimento = False
+                    recog.commandQ.put('only_detection')
+                    #liberar catraca
+                    if pessoa.get('face_reconhecida', False):
+                        message = 'catraca'
+                        sound.soundQ.put('catraca')
+                        iopin.liberar()
+                        #enviar informações de acesso pela API
+                        api_class.threadCreateAcesso(idPessoa=pessoa.get('id', -1))
+                    elif RECOG_OBRIGATORIO:
+                        message = 'block'
+                        sound.soundQ.put('block')
                     else:
-                        api_class.loopCreateAcesso(idPessoa=person.id)
-                finalizarProcesso = False
-                idxRfid = -1
-                step = 1
+                        iopin.liberar()
+                        message = 'wait'
+                        sound.soundQ.put('bemvindo')
+                    step_init_time = time.time()
+                    reset_time = TIME_CATRACA
 
-            if iopin.contagem >= CAPACIDADE_PESSOAS:
-                step = 1
-                message = 'limite'
+        elif step == 'catraca':
+            pass
 
-            if play:
-                play = False
-                played_sound_time = cur_time
-                sound.soundQ.queue.clear()
-                sound.soundQ.put(message)
-            if reset:
-                if (cur_time - played_sound_time) > SOUND_TIME:
-                    reset = False
-                    played_sound_time = 0
-                    
-            if lastStep != step:
-                #step changed
-                iopin.step = step
-                step_init_time = cur_time
-                validacao = 0
-                codigo_rfid = ''
-                usr = None
-                play = True
-                somMascara = True
-                if step == 5:
-                    iopin.liberar()
-                lastStep = step
-            
         if SHOW_BB:
             image = detector.draw(image)
             image = recog.draw(image)
-        image = cv2.copyMakeBorder(image,CANVAS_HEIGHT,CANVAS_HEIGHT,CANVAS_WIDTH,CANVAS_WIDTH,cv2.BORDER_CONSTANT,value=color)
-        
-        image = interface.insertMessage(image, message, person.nome)
-        image = interface.insertLogo(image)
-        image = interface.insertLogo2(image)
-        
-        if step == 5:
-            if usuario != None:
-                #registroPonto = time.strftime("%d/%m/%Y %H:%M:%S", time.gmtime()) + ' - ' + usuario['nome'] + '['+ usuario['empresa'] + ']'
-                #image = cv2.putText(image, registroPonto, (30, 30), cv2.FONT_HERSHEY_SIMPLEX,  
-                #       0.6, (255,255,255), 1, cv2.LINE_AA)
-                pass
 
+        image = interface.mountImage(image, message=message)
 
+        if step != 'wait':
+            if reconhecimento:
+                if recog.new:
+                    if recog.data.get('face_reconhecida', False):
+                        pessoa['face_encontrada'] = recog.data.get('face_encontrada', False)
+                        pessoa['face_reconhecida'] = recog.data.get('face_reconhecida', False)
+                        pessoa['id'] = recog.data.get('id', -1)
+                        pessoa['nome'] = recog.data.get('nome', '')
+                        pessoa['encoding'] = recog.data.get('encoding', [])
+                        reconhecimento = False
+                        recog.commandQ.put('only_detection')
+                if RECOG_OBRIGATORIO:
+                    interface.insertText(image, 'Identificando...')
+            else:
+                if pessoa.get('face_reconhecida', False):
+                    interface.insertText(image, pessoa.get('nome', '...'))
+                elif RECOG_OBRIGATORIO:
+                    #apresentar tela não reconhecido
+                    interface.insertText(image, 'Sem cadastro')
+
+            if cur_time - step_init_time >= reset_time:
+                step = 'wait'
+                reconhecimento = False
+                recog.commandQ.put('only_detection')
+
+        #image = cv2.copyMakeBorder(image,CANVAS_HEIGHT,CANVAS_HEIGHT,CANVAS_WIDTH,CANVAS_WIDTH,
+        #    cv2.BORDER_CONSTANT,value=color)
+        
         if SCREEN_ROTATION == 0:
             None
         elif SCREEN_ROTATION == 90:
@@ -296,29 +253,50 @@ def videoMain():
         elif SCREEN_ROTATION == 270:
             image = cv2.rotate(image, cv2.ROTATE_90_COUNTERCLOCKWISE)
 
-        image = cv2.resize(image, (SCREEN_WIDTH, SCREEN_HEIGHT))
+        if image.shape[0] != SCREEN_HEIGHT or image.shape[1] != SCREEN_WIDTH:
+            image = cv2.resize(image, (SCREEN_WIDTH, SCREEN_HEIGHT))
         cv2.imshow('ArticfoxMaskDetection', image)
         
         k = cv2.waitKey(50) & 0xFF
         if k == ord("q") or k == ord("Q") or k == 27:
             break
-        elif k == ord("p"):
-            step = step + 1
+        elif k == ord("s"):
+            if step == 'wait':
+                step = 'temperatura'
+            elif step == 'temperatura':
+                step = 'mascara'
+            elif step == 'mascara':
+                step = 'alcool'
+            elif step == 'alcool':
+                step = 'catraca'
+            elif step == 'catraca':
+                step = 'wait'
+        elif k == ord("a"):
+            iopin.outputAQ.put('pass')
+        elif k == ord("t"):
+            iopin.outputQ.put('pass')
         elif k == ord("c"):
             iopin.contagem = iopin.contagem + 1
+        elif k == ord("r"):
+            recog.new = True
+            recog.data = {
+                'face_encontrada': True,
+                'face_reconhecida': True,
+                'id': 1,
+                'nome': 'Lin Teste'
+            }
         elif k == 13 or k == 10:
-            idxRfid = rfid_request.verificarUsuario(codigo_rfid, recog.listaRfid)
+            #idxRfid = rfid_request.verificarUsuario(codigo_rfid, recog.listaRfid)
             #print(codigo_rfid)
             codigo_rfid = ''
         elif k != 255:
             codigo_rfid = codigo_rfid + chr(k)
         #print(k)
 
-    sound.soundQ.put('False')
-    iopin.stop = True
-    detector.stop = True
-    recog.stop = True
-    recog.stopQ.put(True)
+    sound.stop()
+    iopin.stop()
+    detector.stop()
+    recog.stop()
     cam.stop()
     cv2.destroyAllWindows()
 

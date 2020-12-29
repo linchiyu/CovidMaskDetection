@@ -42,11 +42,20 @@ class SoundManager():
                 elif tipo == 'catraca':
                     pygame.mixer.music.load(self.path+'catraca.mp3')
                     pygame.mixer.music.play()
+                elif tipo == 'bemvindo':
+                    pygame.mixer.music.load(self.path+'bemvindo.mp3')
+                    pygame.mixer.music.play()
+                elif tipo == 'block':
+                    pygame.mixer.music.load(self.path+'block.mp3')
+                    pygame.mixer.music.play()
                 elif tipo == 'wait':
                     None
                 else:
                     break
             sleep(0.05)
+
+    def stop(self):
+        self.soundQ.put('False')
 
 if __name__ == '__main__':
     s = SoundManager(path='./../data/sound/')
