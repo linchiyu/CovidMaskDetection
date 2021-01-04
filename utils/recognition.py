@@ -4,6 +4,8 @@ import threading
 import numpy as np
 import time
 from multiprocessing import Process, Queue
+#from threading import Thread as Process
+#from queue import Queue
 from .api_request import API
 from . import distance as dst
 import pandas as pd
