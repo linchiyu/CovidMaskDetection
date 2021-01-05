@@ -1,4 +1,4 @@
-import os
+'''import os
 from pathlib import Path
 import gdown
 from functools import partial
@@ -549,4 +549,23 @@ def loadModel(url = 'https://drive.google.com/uc?id=1971Xk5RwedbudGgTIrGAL4F7Aif
 	
 	#-----------------------------------
 	
-	return model
+	return model'''
+
+def loadModel():
+	import tensorflow as tf
+	from tensorflow.python.platform import gfile
+
+	sess = tf.Session()
+
+	f = gfile.FastGFile("./data/weights/tf_model.pb", 'rb')
+	graph_def = tf.GraphDef()
+	# Parses a serialized binary message into the current message.
+	graph_def.ParseFromString(f.read())
+	f.close()
+
+	sess.graph.as_default()
+	# Import a serialized TensorFlow `GraphDef` protocol buffer
+	# and place into the current default `Graph`.
+	tf.import_graph_def(graph_def)
+
+	return sess

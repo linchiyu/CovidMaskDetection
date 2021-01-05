@@ -7,36 +7,37 @@ from settings import *
 class Interface():
     """docstring for Interface"""
     def __init__(self, path='data/images/'):
+        size = self.size = 900
         self.logo = cv2.imread(path+'logo.png', cv2.IMREAD_UNCHANGED)
-        self.logo = imgutil.resizeMaintainAspectRatio(self.logo, height=100)
+        self.logo = imgutil.resizeMaintainAspectRatio(self.logo, height=int(size*100/1280))
 
         self.normal = cv2.imread(path+'background.jpg', cv2.IMREAD_UNCHANGED)
-        self.normal = imgutil.resizeMaintainAspectRatio(self.normal, height=1280)
+        self.normal = imgutil.resizeMaintainAspectRatio(self.normal, height=size)
         self.insertLogoBottom(self.normal)
         #self.insertText(self.normal)
         
         self.waitMessage = cv2.imread(path+'wait.png', cv2.IMREAD_UNCHANGED)
-        self.waitMessage = imgutil.resizeMaintainAspectRatio(self.waitMessage, height=80)
+        self.waitMessage = imgutil.resizeMaintainAspectRatio(self.waitMessage, height=int(size*80/1280))
         self.stopMessage = cv2.imread(path+'stop.png', cv2.IMREAD_UNCHANGED)
-        self.stopMessage = imgutil.resizeMaintainAspectRatio(self.stopMessage, height=80)
+        self.stopMessage = imgutil.resizeMaintainAspectRatio(self.stopMessage, height=int(size*80/1280))
         self.passMessage = cv2.imread(path+'pass.png', cv2.IMREAD_UNCHANGED)
-        self.passMessage = imgutil.resizeMaintainAspectRatio(self.passMessage, height=80)
+        self.passMessage = imgutil.resizeMaintainAspectRatio(self.passMessage, height=int(size*80/1280))
         self.tempMessage = cv2.imread(path+'temperatura.png', cv2.IMREAD_UNCHANGED)
-        self.tempMessage = imgutil.resizeMaintainAspectRatio(self.tempMessage, height=80)
+        self.tempMessage = imgutil.resizeMaintainAspectRatio(self.tempMessage, height=int(size*80/1280))
         self.mascMessage = cv2.imread(path+'mascara.png', cv2.IMREAD_UNCHANGED)
-        self.mascMessage = imgutil.resizeMaintainAspectRatio(self.mascMessage, height=80)
+        self.mascMessage = imgutil.resizeMaintainAspectRatio(self.mascMessage, height=int(size*80/1280))
         self.alcoolMessage = cv2.imread(path+'alcool.png', cv2.IMREAD_UNCHANGED)
-        self.alcoolMessage = imgutil.resizeMaintainAspectRatio(self.alcoolMessage, height=80)
+        self.alcoolMessage = imgutil.resizeMaintainAspectRatio(self.alcoolMessage, height=int(size*80/1280))
         self.cartaoMessage = cv2.imread(path+'cartao.png', cv2.IMREAD_UNCHANGED)
-        self.cartaoMessage = imgutil.resizeMaintainAspectRatio(self.cartaoMessage, height=80)
+        self.cartaoMessage = imgutil.resizeMaintainAspectRatio(self.cartaoMessage, height=int(size*80/1280))
         self.catracaMessage = cv2.imread(path+'catraca.png', cv2.IMREAD_UNCHANGED)
-        self.catracaMessage = imgutil.resizeMaintainAspectRatio(self.catracaMessage, height=80)
+        self.catracaMessage = imgutil.resizeMaintainAspectRatio(self.catracaMessage, height=int(size*80/1280))
         self.limiteMessage = cv2.imread(path+'limite.png', cv2.IMREAD_UNCHANGED)
-        self.limiteMessage = imgutil.resizeMaintainAspectRatio(self.limiteMessage, height=80)
+        self.limiteMessage = imgutil.resizeMaintainAspectRatio(self.limiteMessage, height=int(size*80/1280))
         self.recogMessage = cv2.imread(path+'recog.png', cv2.IMREAD_UNCHANGED)
-        self.recogMessage = imgutil.resizeMaintainAspectRatio(self.recogMessage, height=80)
+        self.recogMessage = imgutil.resizeMaintainAspectRatio(self.recogMessage, height=int(size*80/1280))
         self.blockMessage = cv2.imread(path+'block.png', cv2.IMREAD_UNCHANGED)
-        self.blockMessage = imgutil.resizeMaintainAspectRatio(self.blockMessage, height=80)
+        self.blockMessage = imgutil.resizeMaintainAspectRatio(self.blockMessage, height=int(size*80/1280))
 
 
         self.clean_canvas = self.normal
@@ -45,8 +46,8 @@ class Interface():
     def mountImage(self, cam, message='wait'):
         image = self.clean_canvas.copy()
 
-        if cam.shape[0] != CAMERA_OUTPUT_HEIGHT or cam.shape[1] != CAMERA_OUTPUT_WIDTH:
-            cam = cv2.resize(cam, (CAMERA_OUTPUT_WIDTH, CAMERA_OUTPUT_HEIGHT))
+        if cam.shape[0] != int(self.size*930/1280) or cam.shape[1] != int(self.size*700/1280):
+            cam = cv2.resize(cam, (int(self.size*700/1280), int(self.size*930/1280)))
 
         #insert camera image
         x_offset=int(image.shape[1]/2-cam.shape[1]/2)

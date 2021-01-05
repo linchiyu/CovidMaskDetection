@@ -162,8 +162,8 @@ class FaceRecog():
     def camInference(self):
         from . import Facenet
         import sys
-        from keras.preprocessing import image
-        import keras
+        #from keras.preprocessing import image
+        #import keras
         from apscheduler.schedulers.background import BackgroundScheduler
 
         #load detection
@@ -184,13 +184,9 @@ class FaceRecog():
 
 
         #load recognition
-        model = Facenet.loadModel()
-        input_shape = model.layers[0].input_shape
-        if type(input_shape) == list:
-            input_shape = input_shape[0][1:3]
-        else:
-            input_shape = input_shape[1:3]
+        sess = Facenet.loadModel()
 
+        input_shape = (160, 160)
 
         self.updateFaceList()
         scheduler = BackgroundScheduler()
@@ -253,11 +249,14 @@ class FaceRecog():
                 face_bgr = self.align_face(face_bgr)
 
                 face_bgr = cv2.resize(face_bgr, input_shape)
-                img_pixels = image.img_to_array(face_bgr)
+                #img_pixels = image.img_to_array(face_bgr)
+                img_pixels = np.asarray(face_bgr, dtype='float32')
                 img_pixels = np.expand_dims(img_pixels, axis = 0)
                 img_pixels /= 255
 
-                face_encodings = model.predict(img_pixels)[0,:]
+                softmax_tensor = sess.graph.get_tensor_by_name('import/Bottleneck_BatchNorm_2/cond/Merge:0')
+                predictions = sess.run(softmax_tensor, {'import/input_1_2:0': img_pixels})
+                face_encodings = predictions[0,:]
 
                 # See if the face is a match for the known face(s)
                 #matches = face_recognition.compare_faces(self.listaFaceP, face_encoding)
