@@ -75,8 +75,8 @@ def videoMain():
     api_class = API()
 
     #########FACE RECOG####
-    recog = FaceRecog(api_class=api_class, TOLERANCE=RECOG_TOLERANCE, TAM_ROSTO=TAM_ROSTO, UPDATE_FACELIST_TIME=UPDATE_FACELIST_TIME)
-    recog.run(cam)
+    recog = FaceRecog(api_class=api_class, cameraClass=cam, TOLERANCE=RECOG_TOLERANCE, TAM_ROSTO=TAM_ROSTO, UPDATE_FACELIST_TIME=UPDATE_FACELIST_TIME)
+    #recog.run(cam)
 
     ######
 
@@ -121,6 +121,9 @@ def videoMain():
 
         #detectar pessoa
         if step == 'wait':
+            if not recog.alive:
+                recog.runThreadRecog()
+
             pessoa['face_encontrada'] = False
             pessoa['face_reconhecida'] = False
             pessoa['id'] = -1
@@ -135,7 +138,7 @@ def videoMain():
                 step = 'temperatura'
                 message = 'temperatura'
                 sound.soundQ.put('temperatura')
-                recog.commandQ.put('only_detection_off')
+                recog.only_detection = False
                 reconhecimento = True
                 iopin.outputQ.queue.clear()
                 iopin.threadTemp()
@@ -189,7 +192,7 @@ def videoMain():
                     step = 'catraca'
 
                     reconhecimento = False
-                    recog.commandQ.put('only_detection')
+                    recog.only_detection = True
                     #liberar catraca
                     if pessoa.get('face_reconhecida', False):
                         message = 'catraca'
@@ -226,7 +229,7 @@ def videoMain():
                         pessoa['nome'] = recog.data.get('nome', '')
                         pessoa['encoding'] = recog.data.get('encoding', [])
                         reconhecimento = False
-                        recog.commandQ.put('only_detection')
+                        recog.only_detection = True
                 if RECOG_OBRIGATORIO:
                     interface.insertText(image, 'Identificando...')
             else:
@@ -239,7 +242,7 @@ def videoMain():
             if cur_time - step_init_time >= reset_time:
                 step = 'wait'
                 reconhecimento = False
-                recog.commandQ.put('only_detection')
+                recog.only_detection = True
 
         #image = cv2.copyMakeBorder(image,CANVAS_HEIGHT,CANVAS_HEIGHT,CANVAS_WIDTH,CANVAS_WIDTH,
         #    cv2.BORDER_CONSTANT,value=color)
