@@ -557,7 +557,7 @@ def loadModel():
 
 	sess = tf.Session()
 
-	f = gfile.FastGFile("./data/weights/tf_model.pb", 'rb')
+	f = gfile.FastGFile("./data/weights/facenet_tf_model.pb", 'rb')
 	graph_def = tf.GraphDef()
 	# Parses a serialized binary message into the current message.
 	graph_def.ParseFromString(f.read())
