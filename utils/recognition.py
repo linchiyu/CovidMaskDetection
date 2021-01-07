@@ -71,10 +71,10 @@ class FaceRecog():
         self.cameraClass = cameraClass
 
         #load detection
-        self.face_detector = cv2.dnn.readNetFromCaffe(
+        '''self.face_detector = cv2.dnn.readNetFromCaffe(
             "./data/weights/deploy.prototxt", 
             "./data/weights/res10_300x300_ssd_iter_140000.caffemodel"
-        )
+        )'''
 
         self.eye_detector = cv2.CascadeClassifier("./data/weights/haarcascade_eye.xml")
 
@@ -190,6 +190,57 @@ class FaceRecog():
             img = alignment_procedure(img, left_eye, right_eye)
             
         return img #return img anyway
+
+    def runRecognition(self, detection):
+        self.alive = True
+        if (not self.only_detection and detection.largest_size != None and 
+                detection.largest_size >= self.TAM_ROSTO and
+                detection.face_img != None and
+                detection.largest_predict[0] == 1):
+            face_bgr = detection.face_img.copy()
+            x, y , w, h = detection.largest_predict[2:]
+            w = w - x
+            h = h - y
+            face_location = (x, y , w, h)
+            face_bgr = self.align_face(face_bgr)
+
+            face_bgr = cv2.resize(face_bgr, self.input_shape)
+            #img_pixels = image.img_to_array(face_bgr)
+            img_pixels = np.asarray(face_bgr, dtype='float32')
+            img_pixels = np.expand_dims(img_pixels, axis = 0)
+            img_pixels /= 255
+
+            softmax_tensor = self.sess.graph.get_tensor_by_name('import/Bottleneck_BatchNorm_2/cond/Merge:0')
+            predictions = self.sess.run(softmax_tensor, {'import/input_1_2:0': img_pixels})
+            face_encodings = predictions[0,:]
+
+            # See if the face is a match for the known face(s)
+            #matches = face_recognition.compare_faces(self.listaFaceP, face_encoding)
+            distance = float("inf")
+            best_match_index = -1
+            for idx, enc in enumerate(self.listaFaceP):
+                cur_distance = dst.findCosineDistance(face_encodings, enc)
+                if cur_distance < distance:
+                    distance = cur_distance
+                    best_match_index = idx
+
+            if best_match_index >= 0 and distance <= self.TOLERANCE:
+                #pessoa identificada, retornar dados da pessoa
+                data = self.generate_data(found=True, recog=True, 
+                    idp=self.listaP[best_match_index].get('id'), 
+                    name=self.listaP[best_match_index].get('nome'), 
+                    coord=face_location,
+                    encoding=face_encodings)
+                #self.dataQ.put((data))
+            else:
+                #não há lista de pessoas registradas ou a pessoa é desconhecida
+                #fazer reconhecimento de genero e idade e retornar resultado
+                data = self.generate_data(found=True, recog=False, 
+                    idp=-1, name='', coord=face_location,
+                    encoding=face_encodings)
+                #self.dataQ.put((data))
+        self.alive = False
+
 
     def camInference(self):
         self.alive = True

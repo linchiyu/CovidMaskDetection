@@ -111,6 +111,7 @@ def videoMain():
         'nome': '',
         'encoding': []
     }
+    
     reconhecimento = False
     step = 'wait'
 
@@ -133,7 +134,7 @@ def videoMain():
                 message = 'recog'
             else:
                 message = 'wait'
-            if recog.data.get('face_encontrada', False):
+            if detector.largest_predict != None:
                 #pessoa detectada, realizar outros passos enquanto faz reconhecimento facial
                 step = 'temperatura'
                 message = 'temperatura'
@@ -221,6 +222,8 @@ def videoMain():
 
         if step != 'wait':
             if reconhecimento:
+                if not recog.alive:
+                    recog.runRecognition(detector)
                 if recog.new:
                     if recog.data.get('face_reconhecida', False):
                         pessoa['face_encontrada'] = recog.data.get('face_encontrada', False)

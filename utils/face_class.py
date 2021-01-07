@@ -32,6 +32,7 @@ class MaskDetector():
 
         self.predicts = None
         self.largest_predict = None
+        self.face_img = None
         self.pause = False
         self.stopped = False
         self.new = True
@@ -79,6 +80,7 @@ class MaskDetector():
 
         largest = None
         largest_size = None
+        self.face_img = None
         for idx in keep_idxs:
             conf = float(bbox_max_scores[idx])
             class_id = bbox_max_score_classes[idx]
@@ -102,6 +104,10 @@ class MaskDetector():
 
         self.predicts = output_info
         self.largest_predict = largest
+        self.largest_size = largest_size
+        if largest != None:
+            _, _, xmin, ymin, xmax, ymax = largest
+            self.face_img = cv2.cvtColor(image[ymin:ymax, xmin:xmax], cv2.COLOR_RGB2BGR)
         self.new = True
 
         return output_info
