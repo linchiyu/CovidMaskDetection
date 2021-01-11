@@ -195,7 +195,6 @@ class FaceRecog():
         self.alive = True
         if (not self.only_detection and detection.largest_size != None and 
                 detection.largest_size >= self.TAM_ROSTO and
-                detection.face_img != None and
                 detection.largest_predict[0] == 1):
             face_bgr = detection.face_img.copy()
             x, y , w, h = detection.largest_predict[2:]
@@ -355,8 +354,8 @@ class FaceRecog():
         t = threading.Thread(target=self.collectData,args=(cameraClass,),daemon=True).start()
         p.start()
 
-    def runThreadRecog(self):
-        threading.Thread(target=self.camInference,args=(),daemon=True).start()
+    def runThreadRecog(self, detection):
+        threading.Thread(target=self.runRecognition,args=(detection,),daemon=True).start()
 
     def stop(self):
         self.stopped = True

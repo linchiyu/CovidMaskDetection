@@ -122,9 +122,6 @@ def videoMain():
 
         #detectar pessoa
         if step == 'wait':
-            if not recog.alive:
-                recog.runThreadRecog()
-
             pessoa['face_encontrada'] = False
             pessoa['face_reconhecida'] = False
             pessoa['id'] = -1
@@ -223,7 +220,7 @@ def videoMain():
         if step != 'wait':
             if reconhecimento:
                 if not recog.alive:
-                    recog.runRecognition(detector)
+                    recog.runThreadRecog(detector)
                 if recog.new:
                     if recog.data.get('face_reconhecida', False):
                         pessoa['face_encontrada'] = recog.data.get('face_encontrada', False)
