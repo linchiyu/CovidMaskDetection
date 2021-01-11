@@ -88,7 +88,8 @@ class FaceRecog():
 
 
         #load recognition
-        self.sess = Facenet.loadModel()
+        self.sess = Facenet.FaceNetClass()
+        self.sess.loadModel()
 
         self.input_shape = (160, 160)
 
@@ -196,7 +197,11 @@ class FaceRecog():
         if (not self.only_detection and detection.largest_size != None and 
                 detection.largest_size >= self.TAM_ROSTO and
                 detection.largest_predict[0] == 1):
-            face_bgr = detection.face_img.copy()
+            try:
+                face_bgr = detection.face_img.copy()
+            except:
+                self.alive = False
+                return 
             x, y , w, h = detection.largest_predict[2:]
             w = w - x
             h = h - y
@@ -209,9 +214,7 @@ class FaceRecog():
             img_pixels = np.expand_dims(img_pixels, axis = 0)
             img_pixels /= 255
 
-            softmax_tensor = self.sess.graph.get_tensor_by_name('import/Bottleneck_BatchNorm_2/cond/Merge:0')
-            predictions = self.sess.run(softmax_tensor, {'import/input_1_2:0': img_pixels})
-            face_encodings = predictions[0,:]
+            face_encodings = self.sess.predict(img_pixels)[0,:]
 
             # See if the face is a match for the known face(s)
             #matches = face_recognition.compare_faces(self.listaFaceP, face_encoding)
