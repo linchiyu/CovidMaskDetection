@@ -61,12 +61,11 @@ def videoMain():
     
     cam = cameraThread.iniciarCamera(camera=CAMERA, width=WIDTH, height=HEIGHT, rotation=ROTATION)
     sound = SoundManager()
-    sound.run()
     if TF_LITE:
         detector = MaskDetectorLite(CONFIDENCE)
     else:
         detector = MaskDetector(CONFIDENCE)
-    detector.run(cam)
+    
 
     interface = Interface()
     iopin = IoManager()
@@ -78,6 +77,9 @@ def videoMain():
     recog = FaceRecog(api_class=api_class, cameraClass=cam, TOLERANCE=RECOG_TOLERANCE, TAM_ROSTO=TAM_ROSTO, UPDATE_FACELIST_TIME=UPDATE_FACELIST_TIME)
     #recog.run(cam)
 
+    #run modules
+    detector.run(cam)
+    sound.run()
     ######
 
     if FULL_SCREEN:
@@ -122,6 +124,7 @@ def videoMain():
 
         #detectar pessoa
         if step == 'wait':
+            iopin.stoptemp = True
             pessoa['face_encontrada'] = False
             pessoa['face_reconhecida'] = False
             pessoa['id'] = -1
@@ -139,6 +142,7 @@ def videoMain():
                 recog.only_detection = False
                 reconhecimento = True
                 iopin.outputQ.queue.clear()
+                iopin.stoptemp = False
                 iopin.threadTemp()
                 step_init_time = time.time()
                 reset_time = TIME_TEMP
