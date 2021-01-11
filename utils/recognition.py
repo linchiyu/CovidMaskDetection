@@ -88,10 +88,8 @@ class FaceRecog():
 
 
         #load recognition
-        print(time.time())
         self.sess = Facenet.FaceNetClass()
         self.sess.loadModel()
-        print(time.time())
         self.input_shape = (160, 160)
 
         self.listaP = []
