@@ -36,6 +36,8 @@ class IoManager():
         #VERIFICAR REGRA DO SINAL
         self.sensorAlcool = 17
         self.alcoolVazio = 27
+        
+        self.stoptemp = False
 
 
         if 'nt' in os.name: #windows
@@ -96,11 +98,13 @@ class IoManager():
     def avaliarTemperatura(self):
         if self.has_GPIO:
             now = time.time()
-            while time.time() - now <= TIME_TEMP+1:
+            while time.time() - now <= TIME_TEMP+1 and not self.stoptemp:
+                time.sleep(0.01)
                 x = GPIO.wait_for_edge(self.temperatura, GPIO.RISING, timeout=250)
                 if x == None:
                     pass
                 else:
+                    time.sleep(0.01)
                     x = GPIO.wait_for_edge(self.temperatura, GPIO.FALLING, timeout=300)
                     if x == None:
                         self.outputQ.put('pass')
@@ -108,6 +112,7 @@ class IoManager():
                         self.step = 0
                         break
                     else:
+                        time.sleep(0.01)
                         GPIO.wait_for_edge(self.temperatura, GPIO.RISING, timeout=500)
                         self.outputQ.put('stop')
                         print('stop')
