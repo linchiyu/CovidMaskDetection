@@ -1,4 +1,4 @@
-def verificarUsuario(numero, listaRfid):
+'''def verificarUsuario(numero, listaRfid):
 	try:
 		numero = int(numero)
 	except:
@@ -10,5 +10,19 @@ def verificarUsuario(numero, listaRfid):
 				return idx
 		except:
 			None
-	return -2
+	return -2'''
+
+def verificarUsuario(numero, listaP):
+	try:
+		numero = int(numero)
+	except:
+		return {}
+	for pessoa in listaP:
+		try:
+			if numero == int(pessoa.get('codigo', 0)):
+				#print('usr', pessoa)
+				return pessoa
+		except:
+			return {}
+	return {}
 

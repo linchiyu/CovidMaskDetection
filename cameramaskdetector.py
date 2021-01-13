@@ -217,7 +217,7 @@ def videoMain():
 
         if SHOW_BB:
             image = detector.draw(image)
-            image = recog.draw(image)
+            #image = recog.draw(image)
 
         image = interface.mountImage(image, message=message)
 
@@ -293,7 +293,18 @@ def videoMain():
                 'nome': 'Lin Teste'
             }
         elif k == 13 or k == 10:
-            #idxRfid = rfid_request.verificarUsuario(codigo_rfid, recog.listaRfid)
+            pessoa_rfid = rfid_request.verificarUsuario(codigo_rfid, recog.listaP)
+            if pessoa == {}:
+                pass
+            else:
+                pessoa['id'] = pessoa_rfid.get('id', -1)
+                pessoa['nome'] = pessoa_rfid.get('nome', '')
+                pessoa['encoding'] = pessoa_rfid.get('encoding', [])
+
+                if pessoa['id'] != -1:
+                    pessoa['face_reconhecida'] = True
+                    reconhecimento = False
+                    recog.only_detection = True
             #print(codigo_rfid)
             codigo_rfid = ''
         elif k != 255:
