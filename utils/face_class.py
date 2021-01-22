@@ -41,7 +41,7 @@ class MaskDetector():
     def inference(self, image,
                   conf_thresh=0.5,
                   iou_thresh=0.4,
-                  target_shape=(160, 160),
+                  target_shape=(260, 260),
                   color='rgb'
                   ):
         '''
@@ -111,6 +111,80 @@ class MaskDetector():
         self.new = True
 
         return output_info
+
+    def get_face(self, image,
+                  conf_thresh=0.5,
+                  iou_thresh=0.4,
+                  target_shape=(260, 260),
+                  color='rgb'
+                  ):
+        '''
+        Main function of detection inference
+        :param image: 3D numpy array of image
+        :param conf_thresh: the min threshold of classification probabity.
+        :param iou_thresh: the IOU threshold of NMS
+        :param target_shape: the model input size.
+        :param draw_result: whether to daw bounding box to the image.
+        :param show_result: whether to display the image.
+        :param color: indicates the current color format of the image
+        :return:
+        '''
+        # image = np.copy(image)
+        if color == 'bgr':
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        output_info = []
+        height, width, _ = image.shape
+        image_resized = cv2.resize(image, target_shape)
+        image_np = image_resized / 255.0  # 归一化到0~1
+        image_exp = np.expand_dims(image_np, axis=0)
+        y_bboxes_output, y_cls_output = tf_inference(self.sess, self.graph, image_exp)
+
+        # remove the batch dimension, for batch is always 1 for inference.
+        y_bboxes = decode_bbox(self.anchors_exp, y_bboxes_output)[0]
+        y_cls = y_cls_output[0]
+        # To speed up, do single class NMS, not multiple classes NMS.
+        bbox_max_scores = np.max(y_cls, axis=1)
+        bbox_max_score_classes = np.argmax(y_cls, axis=1)
+
+        # keep_idx is the alive bounding box after nms.
+        keep_idxs = single_class_non_max_suppression(y_bboxes,
+                                                     bbox_max_scores,
+                                                     conf_thresh=conf_thresh,
+                                                     iou_thresh=iou_thresh,
+                                                     )
+
+        largest = None
+        largest_size = None
+        face_img = None
+        for idx in keep_idxs:
+            conf = float(bbox_max_scores[idx])
+            class_id = bbox_max_score_classes[idx]
+            bbox = y_bboxes[idx]
+            # clip the coordinate, avoid the value exceed the image boundary.
+            xmin = max(0, int(bbox[0] * width))
+            ymin = max(0, int(bbox[1] * height))
+            xmax = min(int(bbox[2] * width), width)
+            ymax = min(int(bbox[3] * height), height)
+
+            output_info.append([class_id, conf, xmin, ymin, xmax, ymax])
+
+            if largest == None:
+                largest = (class_id, conf, xmin, ymin, xmax, ymax)
+                largest_size = math.sqrt((xmax-xmin)**2 + (ymax-ymin)**2)
+            else:
+                size = math.sqrt((xmax-xmin)**2 + (ymax-ymin)**2)
+                if largest_size < size:
+                    largest = (class_id, conf, xmin, ymin, xmax, ymax)
+                    largest_size = size
+
+        predicts = output_info
+        largest_predict = largest
+        largest_size = largest_size
+        if largest != None:
+            _, _, xmin, ymin, xmax, ymax = largest
+            face_img = cv2.cvtColor(image[ymin:ymax, xmin:xmax], cv2.COLOR_RGB2BGR)
+
+        return largest_predict, largest_size, face_img
 
     def draw(self, image):
         #results is a vector with [class_id, conf, xmin, ymin, xmax, ymax]

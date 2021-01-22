@@ -10,6 +10,7 @@ else:
     from utils.face_class import MaskDetector
 from utils.recognition import FaceRecog
 from utils.iocontroller import IoManager
+from utils.server_updater import Updater
 from utils import rfid_request
 from utils.api_request import API
 import time
@@ -59,7 +60,8 @@ def videoMain():
     YELLOW = (8,191,253)
     GRAY = (105,105,105)
     
-    cam = cameraThread.iniciarCamera(camera=CAMERA, width=WIDTH, height=HEIGHT, rotation=ROTATION)
+    cam = cameraThread.iniciarCamera(camera=CAMERA, width=WIDTH, height=HEIGHT, 
+        rotation=ROTATION)
     sound = SoundManager()
     if TF_LITE:
         detector = MaskDetectorLite(CONFIDENCE)
@@ -74,8 +76,13 @@ def videoMain():
     api_class = API()
 
     #########FACE RECOG####
-    recog = FaceRecog(api_class=api_class, cameraClass=cam, TOLERANCE=RECOG_TOLERANCE, TAM_ROSTO=TAM_ROSTO, UPDATE_FACELIST_TIME=UPDATE_FACELIST_TIME)
+    recog = FaceRecog(api_class=api_class, cameraClass=cam, TOLERANCE=RECOG_TOLERANCE, 
+        TAM_ROSTO=TAM_ROSTO, UPDATE_FACELIST_TIME=UPDATE_FACELIST_TIME)
     #recog.run(cam)
+
+    updater = Updater(api_class=api_class, detector=detector, recog=recog, 
+        UPDATE_SERVER_FACES=UPDATE_SERVER_FACES)
+
 
     #run modules
     detector.run(cam)

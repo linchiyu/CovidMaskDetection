@@ -67,6 +67,32 @@ class API():
             print("Erro na conexão com servidor")
         return pessoa_list, face_list
 
+    def getProcessList(self):
+        pessoa_list = []
+        try:
+            self.updateToken()
+            response = requests.get(URL+"/api/pessoa/process", cookies=self.cookies)
+            if response.status_code == 200:
+                print("Obtendo lista de usuarios")
+                data = json.loads(response.content)
+                for d in data:
+                    pessoa_list.append(d)
+        except:
+            print("Erro na conexão com servidor")
+        return pessoa_list
+
+    def updateProcessedFace(self, idp, encoded, foto_valida):
+        data = {"face_encoded": str(encoded), "foto_valida": foto_valida}
+        try:
+            self.updateToken()
+            response = requests.put(URL+"/api/pessoa/process/"+str(idp), data=data, cookies=self.cookies)
+            if response.status_code == 200:
+                print('sucesso atualizada face'+str(idp))
+            else:
+                print('erro atualização face')
+        except:
+            print("Erro na conexão com servidor")
+
     def createAcesso(self, idPessoa=1, datahora=str(datetime.now()), tipo="entrada"):
         data = {"data": datahora, "tipoAcesso": tipo, "fkPessoa": idPessoa}
         erro = 0
@@ -77,6 +103,9 @@ class API():
                 if response.status_code == 201:
                     data = json.loads(response.content)
                     break
+                else:
+                    #print('erro')
+                    pass
                 erro += 1
             except:
                 print("Erro na conexão com servidor")
@@ -93,5 +122,7 @@ if __name__ == '__main__':
 
     USUARIO = 'api_client'
     SENHA = 'api_client_secret_key2020'
+    USUARIO = 'chiyu'
+    SENHA = 'p87419702'
     x = API()
-    x.createAcesso(0)
+    print(x.updateProcessedFace(1, 'aaa', False))

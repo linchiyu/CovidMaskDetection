@@ -243,6 +243,23 @@ class FaceRecog():
         self.alive = False
 
 
+    def encode_face(self, face_img):
+        try:
+            face_bgr = face_img.copy()
+        except:
+            return []
+        face_bgr = self.align_face(face_bgr)
+
+        face_bgr = cv2.resize(face_bgr, self.input_shape)
+        #img_pixels = image.img_to_array(face_bgr)
+        img_pixels = np.asarray(face_bgr, dtype='float32')
+        img_pixels = np.expand_dims(img_pixels, axis = 0)
+        img_pixels /= 255
+
+        face_encodings = self.sess.predict(img_pixels)[0,:]
+
+        return face_encodings
+
     def camInference(self):
         self.alive = True
         print('iniciando reconhecimento')
