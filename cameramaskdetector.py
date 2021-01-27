@@ -8,9 +8,10 @@ if TF_LITE:
     from utils.face_class import MaskDetectorLite
 else:
     from utils.face_class import MaskDetector
-from utils.recognition import FaceRecog
 from utils.iocontroller import IoManager
-from utils.server_updater import Updater
+if LIGAR_RECOG:
+    from utils.recognition import FaceRecog
+    from utils.server_updater import Updater
 from utils import rfid_request
 from utils.api_request import API
 import time
@@ -76,12 +77,13 @@ def videoMain():
     api_class = API()
 
     #########FACE RECOG####
-    recog = FaceRecog(api_class=api_class, cameraClass=cam, TOLERANCE=RECOG_TOLERANCE, 
-        TAM_ROSTO=TAM_ROSTO, UPDATE_FACELIST_TIME=UPDATE_FACELIST_TIME)
-    #recog.run(cam)
+    if LIGAR_RECOG:
+        recog = FaceRecog(api_class=api_class, cameraClass=cam, TOLERANCE=RECOG_TOLERANCE, 
+            TAM_ROSTO=TAM_ROSTO, UPDATE_FACELIST_TIME=UPDATE_FACELIST_TIME)
+        #recog.run(cam)
 
-    updater = Updater(api_class=api_class, detector=detector, recog=recog, 
-        UPDATE_SERVER_FACES=UPDATE_SERVER_FACES)
+        updater = Updater(api_class=api_class, detector=detector, recog=recog, 
+            UPDATE_SERVER_FACES=UPDATE_SERVER_FACES)
 
 
     #run modules
@@ -137,7 +139,7 @@ def videoMain():
             pessoa['id'] = -1
             pessoa['nome'] = ''
             pessoa['encoding'] = []
-            if RECOG_OBRIGATORIO:
+            if LIGAR_RECOG and RECOG_OBRIGATORIO:
                 message = 'recog'
             else:
                 message = 'wait'
@@ -146,7 +148,8 @@ def videoMain():
                 step = 'temperatura'
                 message = 'temperatura'
                 sound.soundQ.put('temperatura')
-                recog.only_detection = False
+                if LIGAR_RECOG:
+                    recog.only_detection = False
                 reconhecimento = True
                 iopin.outputQ.queue.clear()
                 iopin.stoptemp = False
@@ -201,7 +204,8 @@ def videoMain():
                     step = 'catraca'
 
                     reconhecimento = False
-                    recog.only_detection = True
+                    if LIGAR_RECOG:
+                        recog.only_detection = True
                     #liberar catraca
                     if pessoa.get('face_reconhecida', False):
                         message = 'catraca'
@@ -229,31 +233,33 @@ def videoMain():
         image = interface.mountImage(image, message=message)
 
         if step != 'wait':
-            if reconhecimento:
-                if not recog.alive:
-                    recog.runThreadRecog(detector)
-                if recog.new:
-                    if recog.data.get('face_reconhecida', False):
-                        pessoa['face_encontrada'] = recog.data.get('face_encontrada', False)
-                        pessoa['face_reconhecida'] = recog.data.get('face_reconhecida', False)
-                        pessoa['id'] = recog.data.get('id', -1)
-                        pessoa['nome'] = recog.data.get('nome', '')
-                        pessoa['encoding'] = recog.data.get('encoding', [])
-                        reconhecimento = False
-                        recog.only_detection = True
-                if RECOG_OBRIGATORIO:
-                    interface.insertText(image, 'Identificando...')
-            else:
-                if pessoa.get('face_reconhecida', False):
-                    interface.insertText(image, pessoa.get('nome', '...'))
-                elif RECOG_OBRIGATORIO:
-                    #apresentar tela não reconhecido
-                    interface.insertText(image, 'Sem cadastro')
+            if LIGAR_RECOG:
+                if reconhecimento:
+                    if not recog.alive:
+                        recog.runThreadRecog(detector)
+                    if recog.new:
+                        if recog.data.get('face_reconhecida', False):
+                            pessoa['face_encontrada'] = recog.data.get('face_encontrada', False)
+                            pessoa['face_reconhecida'] = recog.data.get('face_reconhecida', False)
+                            pessoa['id'] = recog.data.get('id', -1)
+                            pessoa['nome'] = recog.data.get('nome', '')
+                            pessoa['encoding'] = recog.data.get('encoding', [])
+                            reconhecimento = False
+                            recog.only_detection = True
+                    if RECOG_OBRIGATORIO:
+                        interface.insertText(image, 'Identificando...')
+                else:
+                    if pessoa.get('face_reconhecida', False):
+                        interface.insertText(image, pessoa.get('nome', '...'))
+                    elif RECOG_OBRIGATORIO:
+                        #apresentar tela não reconhecido
+                        interface.insertText(image, 'Sem cadastro')
 
             if cur_time - step_init_time >= reset_time:
                 step = 'wait'
-                reconhecimento = False
-                recog.only_detection = True
+                if LIGAR_RECOG:
+                    reconhecimento = False
+                    recog.only_detection = True
 
         #image = cv2.copyMakeBorder(image,CANVAS_HEIGHT,CANVAS_HEIGHT,CANVAS_WIDTH,CANVAS_WIDTH,
         #    cv2.BORDER_CONSTANT,value=color)
@@ -292,28 +298,30 @@ def videoMain():
         elif k == ord("c"):
             iopin.contagem = iopin.contagem + 1
         elif k == ord("r"):
-            recog.new = True
-            recog.data = {
-                'face_encontrada': True,
-                'face_reconhecida': True,
-                'id': 1,
-                'nome': 'Lin Teste'
-            }
+            if LIGAR_RECOG:
+                recog.new = True
+                recog.data = {
+                    'face_encontrada': True,
+                    'face_reconhecida': True,
+                    'id': 1,
+                    'nome': 'Lin Teste'
+                }
         elif k == 13 or k == 10:
-            pessoa_rfid = rfid_request.verificarUsuario(codigo_rfid, recog.listaP)
-            if pessoa == {}:
-                pass
-            else:
-                pessoa['id'] = pessoa_rfid.get('id', -1)
-                pessoa['nome'] = pessoa_rfid.get('nome', '')
-                pessoa['encoding'] = pessoa_rfid.get('encoding', [])
+            if LIGAR_RECOG:
+                pessoa_rfid = rfid_request.verificarUsuario(codigo_rfid, recog.listaP)
+                if pessoa == {}:
+                    pass
+                else:
+                    pessoa['id'] = pessoa_rfid.get('id', -1)
+                    pessoa['nome'] = pessoa_rfid.get('nome', '')
+                    pessoa['encoding'] = pessoa_rfid.get('encoding', [])
 
-                if pessoa['id'] != -1:
-                    pessoa['face_reconhecida'] = True
-                    reconhecimento = False
-                    recog.only_detection = True
-            #print(codigo_rfid)
-            codigo_rfid = ''
+                    if pessoa['id'] != -1:
+                        pessoa['face_reconhecida'] = True
+                        reconhecimento = False
+                        recog.only_detection = True
+                #print(codigo_rfid)
+                codigo_rfid = ''
         elif k != 255:
             codigo_rfid = codigo_rfid + chr(k)
         #print(k)
@@ -321,7 +329,8 @@ def videoMain():
     sound.stop()
     iopin.stop()
     detector.stop()
-    recog.stop()
+    if LIGAR_RECOG:
+        recog.stop()
     cam.stop()
     cv2.destroyAllWindows()
 

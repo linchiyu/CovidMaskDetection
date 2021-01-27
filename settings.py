@@ -50,6 +50,7 @@ if PI:
     SCREEN_ROTATION = 270
 
 #face_recognition
+LIGAR_RECOG = False
 RECOG_OBRIGATORIO = True
 TAM_ROSTO = 55
 RECOG_TOLERANCE = 0.4
