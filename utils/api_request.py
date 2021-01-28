@@ -55,14 +55,14 @@ class API():
         face_list = []
         try:
             self.updateToken()
-            response = requests.get(URL+"/api/pessoa/facelist", cookies=self.cookies)
+            response = requests.get(URL+"/api/pessoa/facelist?limit=100000", cookies=self.cookies)
             if response.status_code == 200:
                 print("Obtendo lista de usuarios")
                 data = json.loads(response.content)
-                for d in data:
+                for d in data.get('results',[]):
                     d['face_encoded'] = getFaceArray(d.get('face_encoded'))
-                    pessoa_list.append(d)
                     face_list.append(d.get('face_encoded', []))
+                pessoa_list = data.get('results',[])
         except:
             print("Erro na conexão com servidor")
         return pessoa_list, face_list
@@ -71,12 +71,11 @@ class API():
         pessoa_list = []
         try:
             self.updateToken()
-            response = requests.get(URL+"/api/pessoa/process", cookies=self.cookies)
+            response = requests.get(URL+"/api/pessoa/process?limit=100000", cookies=self.cookies)
             if response.status_code == 200:
                 print("Obtendo lista de usuarios")
                 data = json.loads(response.content)
-                for d in data:
-                    pessoa_list.append(d)
+                pessoa_list = data.get('results',[])
         except:
             print("Erro na conexão com servidor")
         return pessoa_list
@@ -87,7 +86,7 @@ class API():
             self.updateToken()
             response = requests.put(URL+"/api/pessoa/process/"+str(idp), data=data, cookies=self.cookies)
             if response.status_code == 200:
-                print('sucesso atualizada face'+str(idp))
+                print('sucesso atualizada face '+str(idp))
             else:
                 print('erro atualização face')
         except:
@@ -125,4 +124,4 @@ if __name__ == '__main__':
     USUARIO = 'chiyu'
     SENHA = 'p87419702'
     x = API()
-    print(x.updateProcessedFace(1, 'aaa', False))
+    print(x.getProcessList())

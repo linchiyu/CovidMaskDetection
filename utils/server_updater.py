@@ -41,14 +41,14 @@ class Updater():
 
         #get all unprocessed persons from api
         persons = self.api_class.getProcessList()
-        print(persons)
+        #print(persons)
 
         for p in persons:
             #download the person image
             try:
                 image = url_to_image(p.get('foto'))
             except:
-                print('erro na imagem')
+                print('erro na imagem ' + str(p.get('id')))
                 continue
 
             print('processando imagem')
@@ -57,7 +57,7 @@ class Updater():
 
             encoding = self.recog.encode_face(face_img)
 
-            print(encoding)
+            #print(encoding)
 
             #upload back the result to the server
             if len(encoding) > 0:
@@ -65,10 +65,10 @@ class Updater():
             else:
                 valida = False
             numpyData = {"face": encoding}
-            print(numpyData)
+            #print(numpyData)
             encodedNumpyData = json.dumps(numpyData, cls=NumpyArrayEncoder)
-            print(encodedNumpyData)
-            print('atualizando imagem')
+            #print(encodedNumpyData)
+            #print('atualizando imagem')
             self.api_class.updateProcessedFace(p.get('id'), encodedNumpyData, valida)
 
         self.alive = False
