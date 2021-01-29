@@ -193,7 +193,7 @@ class FaceRecog():
 
     def runRecognition(self, detection):
         self.alive = True
-        if (not self.only_detection and detection.largest_size != None and 
+        if (detection.largest_size != None and 
                 detection.largest_size >= self.TAM_ROSTO and
                 detection.largest_predict[0] == 1):
             try:

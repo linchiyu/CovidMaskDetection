@@ -49,6 +49,7 @@ class Updater():
                 image = url_to_image(p.get('foto'))
             except:
                 print('erro na imagem ' + str(p.get('id')))
+                self.api_class.updateProcessedFace(p.get('id'), json.dumps({"face": []}, cls=NumpyArrayEncoder), False)
                 continue
 
             print('processando imagem')
