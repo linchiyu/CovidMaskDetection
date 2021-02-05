@@ -147,7 +147,7 @@ def videoMain():
                 #pessoa detectada, realizar outros passos enquanto faz reconhecimento facial
                 if LIGAR_RECOG:
                     if not recog.alive:
-                        print('starting thread recog')
+                        #print('starting thread recog')
                         recog.runThreadRecog(detector)
                     if recog.new:
                         recog.new = False
@@ -266,8 +266,11 @@ def videoMain():
         if step == 'wait':
             if LIGAR_RECOG:
                 if RECOG_OBRIGATORIO:
-                    interface.insertText(image, 'Identificando...')
-
+                    if recog.data.get('face_encontrada', False):
+                        if not recog.data.get('face_reconhecida', True):
+                            interface.insertText(image, 'Sem cadastro...')
+                    else:
+                        interface.insertText(image, 'Identificando...')
         if step != 'wait':
             if LIGAR_RECOG:
                 if reconhecimento:

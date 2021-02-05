@@ -71,10 +71,10 @@ class FaceRecog():
         self.cameraClass = cameraClass
 
         #load detection
-        '''self.face_detector = cv2.dnn.readNetFromCaffe(
+        self.face_detector = cv2.dnn.readNetFromCaffe(
             "./data/weights/deploy.prototxt", 
             "./data/weights/res10_300x300_ssd_iter_140000.caffemodel"
-        )'''
+        )
 
         self.eye_detector = cv2.CascadeClassifier("./data/weights/haarcascade_eye.xml")
 
@@ -200,6 +200,7 @@ class FaceRecog():
                 face_bgr = detection.face_img.copy()
             except:
                 self.alive = False
+                print('erro reconhecimento - ausencia de face')
                 return 
             x, y , w, h = detection.largest_predict[2:]
             w = w - x

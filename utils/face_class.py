@@ -5,11 +5,14 @@ import math
 import threading
 import numpy as np
 import time
+import dlib
 #from keras.models import model_from_json
 from utils.anchor_generator import generate_anchors
 from utils.anchor_decode import decode_bbox
 from utils.nms import single_class_non_max_suppression
 from load_model.tensorflow_loader import load_tf_model, tf_inference
+import imutils
+import imutils.face_utils
 
 class MaskDetector():
     """Facial Mask detector"""
@@ -20,6 +23,8 @@ class MaskDetector():
         feature_map_sizes = [[33, 33], [17, 17], [9, 9], [5, 5], [3, 3]]
         anchor_sizes = [[0.04, 0.056], [0.08, 0.11], [0.16, 0.22], [0.32, 0.45], [0.64, 0.72]]
         anchor_ratios = [[1, 0.62, 0.42]] * 5
+
+        self.detector = dlib.get_frontal_face_detector()
 
         # generate anchors
         anchors = generate_anchors(feature_map_sizes, anchor_sizes, anchor_ratios)
@@ -35,6 +40,7 @@ class MaskDetector():
         self.face_img = None
         self.pause = False
         self.stopped = False
+        self.face_mask = False
         self.new = True
 
 
@@ -112,6 +118,61 @@ class MaskDetector():
 
         return output_info
 
+    def inference_face(self, image,
+                  conf_thresh=0.5,
+                  iou_thresh=0.4,
+                  target_shape=(260, 260)
+                  ):
+        '''
+        Main function of detection inference
+        :param image: 3D numpy array of image
+        :param conf_thresh: the min threshold of classification probabity.
+        :param iou_thresh: the IOU threshold of NMS
+        :param target_shape: the model input size.
+        :param draw_result: whether to daw bounding box to the image.
+        :param show_result: whether to display the image.
+        :return:
+        '''
+        # image = np.copy(image)
+        output_info = []
+        height, width, _ = image.shape
+
+        small_frame = cv2.resize(image, (0, 0), fx=0.25, fy=0.25)
+        gray = cv2.cvtColor(small_frame, cv2.COLOR_BGR2GRAY)
+        rects = self.detector(gray, 1)
+
+        largest = None
+        largest_size = None
+        self.face_img = None
+
+        for (i, rect) in enumerate(rects):
+            (x, y, w, h) = imutils.face_utils.rect_to_bb(rect)
+            xmin = max(0, int(x * 4))
+            ymin = max(0, int(y * 4))
+            xmax = min(xmin+int(w * 4), width)
+            ymax = min(ymin+int(h * 4), height)
+
+            output_info.append([1, 1, xmin, ymin, xmax, ymax])
+
+            if largest == None:
+                largest = (1, 1, xmin, ymin, xmax, ymax)
+                largest_size = math.sqrt((xmax-xmin)**2 + (ymax-ymin)**2)
+            else:
+                size = math.sqrt((xmax-xmin)**2 + (ymax-ymin)**2)
+                if largest_size < size:
+                    largest = (1, 1, xmin, ymin, xmax, ymax)
+                    largest_size = size
+
+        self.predicts = output_info
+        self.largest_predict = largest
+        self.largest_size = largest_size
+        if largest != None:
+            _, _, xmin, ymin, xmax, ymax = largest
+            self.face_img = image[ymin:ymax, xmin:xmax].copy()
+        self.new = True
+
+        return output_info
+
     def get_face(self, image,
                   conf_thresh=0.5,
                   iou_thresh=0.4,
@@ -130,51 +191,33 @@ class MaskDetector():
         :return:
         '''
         # image = np.copy(image)
-        if color == 'bgr':
-            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         output_info = []
         height, width, _ = image.shape
-        image_resized = cv2.resize(image, target_shape)
-        image_np = image_resized / 255.0  # 归一化到0~1
-        image_exp = np.expand_dims(image_np, axis=0)
-        y_bboxes_output, y_cls_output = tf_inference(self.sess, self.graph, image_exp)
 
-        # remove the batch dimension, for batch is always 1 for inference.
-        y_bboxes = decode_bbox(self.anchors_exp, y_bboxes_output)[0]
-        y_cls = y_cls_output[0]
-        # To speed up, do single class NMS, not multiple classes NMS.
-        bbox_max_scores = np.max(y_cls, axis=1)
-        bbox_max_score_classes = np.argmax(y_cls, axis=1)
-
-        # keep_idx is the alive bounding box after nms.
-        keep_idxs = single_class_non_max_suppression(y_bboxes,
-                                                     bbox_max_scores,
-                                                     conf_thresh=conf_thresh,
-                                                     iou_thresh=iou_thresh,
-                                                     )
+        small_frame = cv2.resize(image, (0, 0), fx=0.25, fy=0.25)
+        gray = cv2.cvtColor(small_frame, cv2.COLOR_BGR2GRAY)
+        rects = self.detector(gray, 1)
 
         largest = None
         largest_size = None
         face_img = None
-        for idx in keep_idxs:
-            conf = float(bbox_max_scores[idx])
-            class_id = bbox_max_score_classes[idx]
-            bbox = y_bboxes[idx]
-            # clip the coordinate, avoid the value exceed the image boundary.
-            xmin = max(0, int(bbox[0] * width))
-            ymin = max(0, int(bbox[1] * height))
-            xmax = min(int(bbox[2] * width), width)
-            ymax = min(int(bbox[3] * height), height)
 
-            output_info.append([class_id, conf, xmin, ymin, xmax, ymax])
+        for (i, rect) in enumerate(rects):
+            (x, y, w, h) = imutils.face_utils.rect_to_bb(rect)
+            xmin = max(0, int(x * 4))
+            ymin = max(0, int(y * 4))
+            xmax = min(xmin+int(w * 4), width)
+            ymax = min(ymin+int(h * 4), height)
+
+            output_info.append([0, 1, xmin, ymin, xmax, ymax])
 
             if largest == None:
-                largest = (class_id, conf, xmin, ymin, xmax, ymax)
+                largest = (0, 1, xmin, ymin, xmax, ymax)
                 largest_size = math.sqrt((xmax-xmin)**2 + (ymax-ymin)**2)
             else:
                 size = math.sqrt((xmax-xmin)**2 + (ymax-ymin)**2)
                 if largest_size < size:
-                    largest = (class_id, conf, xmin, ymin, xmax, ymax)
+                    largest = (0, 1, xmin, ymin, xmax, ymax)
                     largest_size = size
 
         predicts = output_info
@@ -182,7 +225,7 @@ class MaskDetector():
         largest_size = largest_size
         if largest != None:
             _, _, xmin, ymin, xmax, ymax = largest
-            face_img = cv2.cvtColor(image[ymin:ymax, xmin:xmax], cv2.COLOR_RGB2BGR)
+            face_img = image[ymin:ymax, xmin:xmax].copy()
 
         return largest_predict, largest_size, face_img
 
@@ -226,13 +269,18 @@ class MaskDetector():
                 self.new = False
                 time.sleep(0.3)
             else:
-                img_raw = cameraClass.read()
-                img_raw = cv2.cvtColor(img_raw, cv2.COLOR_BGR2RGB)
-                self.inference(img_raw,
-                          conf_thresh=self.conf,
-                          iou_thresh=0.5,
-                          target_shape=(260, 260)
-                          )
+                if self.face_mask:
+                    img_raw = cameraClass.read()
+                    img_raw = cv2.cvtColor(img_raw, cv2.COLOR_BGR2RGB)
+                    self.inference(img_raw,
+                              conf_thresh=self.conf,
+                              iou_thresh=0.5,
+                              target_shape=(260, 260)
+                              )
+                else:
+                    img_raw = cameraClass.read()
+                    self.inference_face(img_raw)
+
 
     def run(self, cameraClass):
         t = threading.Thread(target=self.camInference,args=(cameraClass,),daemon=True)
