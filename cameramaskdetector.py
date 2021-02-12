@@ -145,48 +145,18 @@ def videoMain():
                 message = 'wait'
             if detector.largest_predict != None:
                 #pessoa detectada, realizar outros passos enquanto faz reconhecimento facial
+                step = 'temperatura'
+                message = 'temperatura'
+                sound.soundQ.put('temperatura')
                 if LIGAR_RECOG:
-                    if not recog.alive:
-                        #print('starting thread recog')
-                        recog.runThreadRecog(detector)
-                    if recog.new:
-                        recog.new = False
-                        if recog.data.get('face_reconhecida', False):
-                            pessoa['face_encontrada'] = recog.data.get('face_encontrada', False)
-                            pessoa['face_reconhecida'] = recog.data.get('face_reconhecida', False)
-                            pessoa['id'] = recog.data.get('id', -1)
-                            pessoa['nome'] = recog.data.get('nome', '')
-                            pessoa['encoding'] = recog.data.get('encoding', [])
-                            recog.only_detection = True
-
-                            step = 'temperatura'
-                            message = 'temperatura'
-                            sound.soundQ.put('temperatura')
-                            iopin.outputQ.queue.clear()
-                            iopin.stoptemp = False
-                            iopin.threadTemp()
-                            step_init_time = time.time()
-                            reset_time = TIME_TEMP
-                    if not RECOG_OBRIGATORIO:
-                        step = 'temperatura'
-                        message = 'temperatura'
-                        sound.soundQ.put('temperatura')
-                        reconhecimento = True
-                        iopin.outputQ.queue.clear()
-                        iopin.stoptemp = False
-                        iopin.threadTemp()
-                        step_init_time = time.time()
-                        reset_time = TIME_TEMP
-                else:
-                    step = 'temperatura'
-                    message = 'temperatura'
-                    sound.soundQ.put('temperatura')
-                    reconhecimento = True
-                    iopin.outputQ.queue.clear()
-                    iopin.stoptemp = False
-                    iopin.threadTemp()
-                    step_init_time = time.time()
-                    reset_time = TIME_TEMP
+                    recog.new = False
+                    recog.only_detection = False
+                reconhecimento = True
+                iopin.outputQ.queue.clear()
+                iopin.stoptemp = False
+                iopin.threadTemp()
+                step_init_time = time.time()
+                reset_time = TIME_TEMP
         #outros passos: alcool, temperatura, gel
         elif step == 'temperatura':
             if not iopin.outputQ.empty():
@@ -263,18 +233,10 @@ def videoMain():
 
         image = interface.mountImage(image, message=message)
 
-        if step == 'wait':
-            if LIGAR_RECOG:
-                if RECOG_OBRIGATORIO:
-                    if recog.data.get('face_encontrada', False):
-                        if not recog.data.get('face_reconhecida', True):
-                            interface.insertText(image, 'Sem cadastro...')
-                    else:
-                        interface.insertText(image, 'Identificando...')
         if step != 'wait':
             if LIGAR_RECOG:
                 if reconhecimento:
-                    if not recog.alive and pessoa.get('face_reconhecida', False):
+                    if not recog.alive:
                         recog.runThreadRecog(detector)
                     if recog.new:
                         recog.new = False
@@ -300,6 +262,7 @@ def videoMain():
                 if LIGAR_RECOG:
                     reconhecimento = False
                     recog.only_detection = True
+                    recog.new = False
 
         #image = cv2.copyMakeBorder(image,CANVAS_HEIGHT,CANVAS_HEIGHT,CANVAS_WIDTH,CANVAS_WIDTH,
         #    cv2.BORDER_CONSTANT,value=color)

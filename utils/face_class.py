@@ -41,7 +41,7 @@ class MaskDetector():
         self.pause = False
         self.stopped = False
         self.face_mask = False
-        self.new = True
+        self.new = False
 
 
     def inference(self, image,
@@ -86,7 +86,6 @@ class MaskDetector():
 
         largest = None
         largest_size = None
-        self.face_img = None
         for idx in keep_idxs:
             conf = float(bbox_max_scores[idx])
             class_id = bbox_max_score_classes[idx]
@@ -143,7 +142,6 @@ class MaskDetector():
 
         largest = None
         largest_size = None
-        self.face_img = None
 
         for (i, rect) in enumerate(rects):
             (x, y, w, h) = imutils.face_utils.rect_to_bb(rect)

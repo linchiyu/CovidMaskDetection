@@ -43,6 +43,8 @@ class Updater():
         persons = self.api_class.getProcessList()
         #print(persons)
 
+        qtde_att = 0
+
         for p in persons:
             #download the person image
             try:
@@ -71,6 +73,10 @@ class Updater():
             #print(encodedNumpyData)
             #print('atualizando imagem')
             self.api_class.updateProcessedFace(p.get('id'), encodedNumpyData, valida)
+            qtde_att += 1
+
+        if qtde_att > 0:
+            self.recog.updateFaceList()
 
         self.alive = False
 
