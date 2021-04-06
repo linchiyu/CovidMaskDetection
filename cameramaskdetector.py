@@ -7,6 +7,10 @@ from settings import *
 import uuid
 import hashlib, binascii, os
 import logging
+import datetime
+from utils import banco
+from utils import usbcontroller
+from utils.iocontroller import IoManager
 if TF_LITE:
     from utils.face_class import MaskDetectorLite as MaskDetector
 else:
@@ -55,6 +59,10 @@ def videoMain():
     detector = MaskDetector(CONFIDENCE)
     detector.run(cam)
     interface = Interface()
+    iopin = IoManager()
+    iopin.run()
+    dbm = banco.DBManager()
+    usbc = usbcontroller.USBDetector()
 
     if FULL_SCREEN:
         cv2.namedWindow('ArticfoxMaskDetection', cv2.WINDOW_FREERATIO)
@@ -69,7 +77,7 @@ def videoMain():
     play = False
     reset = False
 
-
+    usando_mascara = "nao"
     while True:
         image = cam.read()
 
@@ -89,6 +97,7 @@ def videoMain():
                     color = GREEN
                     if (cur_time - played_sound_time) > SOUND_WAIT_TIME:
                         play = True
+                    usando_mascara = "sim"
                 elif last == 'stop':
                     reset = True
                 last = 'pass'
@@ -98,9 +107,26 @@ def videoMain():
                     color = RED
                     if (cur_time - played_sound_time) > SOUND_WAIT_TIME:
                         play = True
+                    usando_mascara = "nao"
                 elif last == 'pass':
                     reset = True
                 last = 'stop'
+
+        if not iopin.outputQ.empty():
+            result = iopin.outputQ.get()
+            now = time.time()
+            if result == 'pass':
+                #print('registrando temperatura regular, mascara:'+str(usando_mascara))
+                dbm.threadInserir(data=datetime.datetime.now(), temperatura="regular", mascara=usando_mascara)
+                #enviar para o banco:
+                '''temp = 'normal'
+                mascara = usando_mascara #true/false
+                datahora = now()
+                '''
+            elif result == 'stop':
+                #temperatura incorreta, tente novamente
+                #print('registrando temperatura irregular')
+                dbm.threadInserir(data=datetime.datetime.now(), temperatura="irregular", mascara=usando_mascara)
 
         if play:
             play = False
