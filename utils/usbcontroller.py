@@ -7,6 +7,8 @@ if 'nt' in os.name:
 else:
     import pyudev
 
+#https://vivekanandxyz.wordpress.com/2018/01/03/detecting-usb-insertion-removal-using-python/
+
 class USBDetector():
     ''' Monitor udev for detection of usb '''
  
@@ -20,7 +22,7 @@ class USBDetector():
             thread.daemon = True
             thread.start()
             try:
-                os.system("sudo mkdir " + path)
+                os.system("mkdir " + self.path)
             except:
                 None
         self.lastUpdated = 0

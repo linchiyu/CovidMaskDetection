@@ -6,7 +6,7 @@ import threading
 
 HOST = 'localhost'
 USER = 'root'
-PASSWORD = ''
+PASSWORD = 'articfox'
 DATABASE = 'uppcare01'
 
 def criarBanco():
@@ -17,6 +17,7 @@ def criarBanco():
     )
     mycursor = mydb.cursor()
     mycursor.execute("CREATE DATABASE uppcare01")
+    mydb.close()
 
 def criarTabela():
     mydb = mysql.connector.connect(
@@ -27,6 +28,19 @@ def criarTabela():
     )
     mycursor = mydb.cursor()
     mycursor.execute("CREATE TABLE registro (id INT AUTO_INCREMENT PRIMARY KEY, datahora DATETIME NOT NULL, temperatura VARCHAR(30) NOT NULL, mascara VARCHAR(30) NOT NULL)")
+    mydb.close()
+    
+def resetarTabela():
+    mydb = mysql.connector.connect(
+      host=HOST,
+      user=USER,
+      password=PASSWORD,
+      database=DATABASE
+    )
+    mycursor = mydb.cursor()
+    mycursor.execute("DROP TABLE registro")
+    mydb.close()
+    criarTabela()
 
 class DBManager():
     def __init__(self):
@@ -38,7 +52,7 @@ class DBManager():
         )
         self.path = "/home/pi/temp/"
         try:
-            os.system("sudo mkdir " + path)
+            os.system("mkdir " + self.path)
         except:
             None
 
@@ -73,11 +87,25 @@ class DBManager():
         t = threading.Thread(target=self.inserirRegistro, args=(data, temperatura, mascara,))
         t.daemon = True
         t.start()
+        
+    def stop(self):
+        self.mydb.close()
 
 
 if __name__ == '__main__':
-    b = DBManager()
-    b.inserirRegistro(datetime.datetime(year=2021, month=3, day=5))
+    #b = DBManager()
+    #b.inserirRegistro(datetime.datetime(year=2021, month=3, day=5))
     #x = b.receberRegistros()
     #registros2Csv(x)
-    print(b.receberRegistros())
+    #print(b.receberRegistros())
+    #criarBanco()
+    #criarTabela()
+    resetarTabela()
+    #b.stop()
+    
+    
+    '''Log in to MySQL: sudo mysql --user=root
+
+Delete the root user: DROP USER 'root'@'localhost'; Create a new user: CREATE USER 'root'@'localhost' IDENTIFIED BY 'password'; Give the user all permissions: GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' WITH GRANT OPTION;
+
+'''
