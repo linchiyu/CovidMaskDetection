@@ -107,7 +107,6 @@ class IoManager():
                     if x == None:
                         self.outputQ.put('pass')
                         print('pass')
-                        self.step = 0
                     else:
                         time.sleep(0.01)
                         GPIO.wait_for_edge(self.temperatura, GPIO.RISING, timeout=500)
@@ -118,7 +117,6 @@ class IoManager():
         else:
             print('avaliando temperatura GPIO')
             self.outputQ.put('pass')
-            self.step = 0
             time.sleep(20)
 
     def alcoolSignal(self, channel):
@@ -169,15 +167,6 @@ class IoManager():
     def loopGpio(self):
         while True:
             self.avaliarTemperatura()
-            if self.step == 1:
-                self.avaliarTemperatura()
-            elif self.step == 3:
-                #self.avaliarAlcool()
-                pass
-                '''elif self.step == 5:
-                self.liberarCatraca()'''
-            else:
-                time.sleep(0.1)
             if self.stop:
                 break
         if self.has_GPIO:
