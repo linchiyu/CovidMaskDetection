@@ -40,7 +40,7 @@ class MaskDetector():
         self.face_img = None
         self.pause = False
         self.stopped = False
-        self.face_mask = False
+        self.face_mask = True
         self.new = False
 
 
