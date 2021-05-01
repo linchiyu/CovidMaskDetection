@@ -72,7 +72,7 @@ def videoMain():
 
     interface = Interface()
     iopin = IoManager()
-    #iopin.run()
+    iopin.run()
 
     api_class = API()
 
@@ -153,8 +153,9 @@ def videoMain():
                     recog.only_detection = False
                 reconhecimento = True
                 iopin.outputQ.queue.clear()
+                iopin.outputAQ.queue.clear()
                 iopin.stoptemp = False
-                iopin.threadTemp()
+                #iopin.threadTemp()
                 step_init_time = time.time()
                 reset_time = TIME_TEMP
         #outros passos: alcool, temperatura, gel
@@ -219,7 +220,7 @@ def videoMain():
                         sound.soundQ.put('block')
                     else:
                         iopin.liberar()
-                        message = 'wait'
+                        message = 'catraca'
                         sound.soundQ.put('bemvindo')
                     step_init_time = time.time()
                     reset_time = TIME_CATRACA

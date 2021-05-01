@@ -62,7 +62,7 @@ class IoManager():
 
             GPIO.setup(self.sensorAlcool, GPIO.IN, pull_up_down=GPIO.PUD_UP)
             GPIO.setup(self.alcoolVazio, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-            GPIO.add_event_detect(self.sensorAlcool, GPIO.FALLING, callback=self.alcoolSignal)
+            GPIO.add_event_detect(self.sensorAlcool, GPIO.FALLING, callback=self.avaliarAlcool)
             
             GPIO.output(self.catracaDireita, GPIO.HIGH)
             GPIO.output(self.catracaEsquerda, GPIO.HIGH)
@@ -98,7 +98,7 @@ class IoManager():
     def avaliarTemperatura(self):
         if self.has_GPIO:
             now = time.time()
-            while time.time() - now <= TIME_TEMP+1 and not self.stoptemp:
+            while time.time() - now <= TIME_TEMP+1:
                 time.sleep(0.01)
                 x = GPIO.wait_for_edge(self.temperatura, GPIO.RISING, timeout=250)
                 if x == None:
@@ -109,30 +109,33 @@ class IoManager():
                     if x == None:
                         self.outputQ.put('pass')
                         print('pass')
-                        self.step = 0
+                        #self.step = 0
                         break
                     else:
                         time.sleep(0.01)
                         GPIO.wait_for_edge(self.temperatura, GPIO.RISING, timeout=500)
                         self.outputQ.put('stop')
                         print('stop')
+                if self.stopped:
+                    break
         else:
             print('avaliando temperatura GPIO')
             self.outputQ.put('pass')
-            self.step = 0
+            #self.step = 0
 
     def alcoolSignal(self, channel):
         if self.step == 3:
             self.outputAQ.put('pass')
             self.step = 0
         
-    def avaliarAlcool(self):
+    def avaliarAlcool(self, channel):
         if self.has_GPIO:
-            pass
+            self.outputAQ.put('pass')
+            print('pass alcool')
         else:
             print('avaliando sensor alcool GPIO')
             self.outputAQ.put('pass')
-            self.step = 0
+            #self.step = 0
 
     def liberarCatraca(self):
         ##############
@@ -148,7 +151,7 @@ class IoManager():
             time.sleep(1)
             self.setHigh(self.catracaDireita)
             self.setHigh(self.catracaEsquerda)
-            self.step = 0
+            #self.step = 0
         else:
             print('catraca liberada')
 
@@ -162,21 +165,16 @@ class IoManager():
             time.sleep(1)
             self.setHigh(self.catracaDireita)
             self.setHigh(self.catracaEsquerda)
-            self.step = 0
+            #self.step = 0
         else:
             print('catraca liberada')
 
     def loopGpio(self):
         while True:
-            if self.step == 1:
+            try:
                 self.avaliarTemperatura()
-            elif self.step == 3:
-                #self.avaliarAlcool()
-                pass
-                '''elif self.step == 5:
-                self.liberarCatraca()'''
-            else:
-                time.sleep(0.1)
+            except:
+                print('erro ao avaliar temp')
             if self.stopped:
                 break
 
@@ -201,4 +199,4 @@ if __name__ == '__main__':
     x.run()
     x.step = 1
     time.sleep(10)
-    x.stop = True
+    x.stop()
