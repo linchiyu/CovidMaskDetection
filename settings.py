@@ -37,6 +37,7 @@ CAPACIDADE_PESSOAS = 100
 RFID_ATIVO = False
 
 SHARED_MEMORY = False
+PROPAGANDA = True
 
 if PI:
     CAMERA = 'pi'
