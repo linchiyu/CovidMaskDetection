@@ -185,6 +185,9 @@ class IoManager():
 
     def stop(self):
         self.stopped = True
+        time.sleep(10)
+        if self.has_GPIO:
+            GPIO.cleanup()
         
     def liberar(self):
         Thread(target=self.liberarCatraca, args=(), daemon=True).start()
