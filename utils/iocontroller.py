@@ -60,7 +60,7 @@ class IoManager():
 
             GPIO.setup(self.sensorAlcool, GPIO.IN, pull_up_down=GPIO.PUD_UP)
             GPIO.setup(self.alcoolVazio, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-            GPIO.add_event_detect(self.sensorAlcool, GPIO.FALLING, callback=self.alcoolSignal)
+            GPIO.add_event_detect(self.sensorAlcool, GPIO.FALLING, callback=self.avaliarAlcool)
             
             GPIO.output(self.catracaDireita, GPIO.HIGH)
             GPIO.output(self.catracaEsquerda, GPIO.HIGH)
@@ -96,7 +96,7 @@ class IoManager():
     def avaliarTemperatura(self):
         if self.has_GPIO:
             now = time.time()
-            while time.time() - now <= TIME_TEMP*1000:
+            while time.time() - now <= TIME_TEMP+1:
                 time.sleep(0.01)
                 x = GPIO.wait_for_edge(self.temperatura, GPIO.RISING, timeout=250)
                 if x == None:
@@ -169,20 +169,11 @@ class IoManager():
 
     def loopGpio(self):
         while True:
-            if self.step == 1:
-                try:
-                    self.avaliarTemperatura()
-                    time.sleep(0.1)
-                except:
-                    None
-            elif self.step == 3:
-                #self.avaliarAlcool()
+            try:
+                self.avaliarTemperatura()
                 time.sleep(0.1)
-                pass
-                '''elif self.step == 5:
-                self.liberarCatraca()'''
-            else:
-                time.sleep(0.1)
+            except:
+                None
             if self.stopped:
                 break
         if self.has_GPIO:
@@ -193,8 +184,6 @@ class IoManager():
 
     def stop(self):
         self.stopped = True
-        if self.has_GPIO:
-            GPIO.cleanup()
         
     def liberar(self):
         Thread(target=self.liberarCatraca, args=(), daemon=True).start()

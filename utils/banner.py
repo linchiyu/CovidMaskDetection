@@ -69,7 +69,7 @@ class Banner():
         return img
 
 
-    def update(self, elapse=20): #pass images here to fade between
+    def update(self, elapse=10): #pass images here to fade between
         #print('updating banner')
         with self.lock:
             img1 = self.image
