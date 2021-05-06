@@ -108,13 +108,14 @@ class IoManager():
                         self.outputQ.put('pass')
                         print('pass')
                         self.step = 0
-                        time.sleep(1)
                     else:
                         time.sleep(0.01)
                         GPIO.wait_for_edge(self.temperatura, GPIO.RISING, timeout=500)
                         self.outputQ.put('stop')
                         print('stop')
-                        time.sleep(1)
+                    time.sleep(1)
+                    break
+                if self.stopped:
                     break
         else:
             print('avaliando temperatura GPIO')
