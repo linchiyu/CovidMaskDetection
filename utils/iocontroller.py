@@ -126,7 +126,7 @@ class IoManager():
             self.outputAQ.put('pass')
             self.step = 0
         
-    def avaliarAlcool(self):
+    def avaliarAlcool(self, channel):
         if self.has_GPIO:
             self.outputAQ.put('pass')
             self.step = 0
