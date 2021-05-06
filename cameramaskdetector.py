@@ -10,6 +10,8 @@ else:
     from utils.face_class import MaskDetector
 from utils.iocontroller import IoManager
 from utils import rfid
+from utils.banner import Banner
+from utils import usbcontroller
 import time
 import sys
 import uuid
@@ -68,6 +70,10 @@ def videoMain():
     interface = Interface()
     iopin = IoManager()
     iopin.run()
+
+    if PROPAGANDA:
+        banner = Banner(shape=(SCREEN_WIDTH, SCREEN_HEIGHT))
+        usbc = usbcontroller.USBDetector()
 
     if FULL_SCREEN:
         cv2.namedWindow('ArticfoxMaskDetection', cv2.WINDOW_FREERATIO)
@@ -207,15 +213,20 @@ def videoMain():
             if step == 5:
                 iopin.liberar()
             lastStep = step
-        
-        if SHOW_BB:
-            image = detector.draw(image)
-        image = cv2.copyMakeBorder(image,CANVAS_HEIGHT,CANVAS_HEIGHT,CANVAS_WIDTH,CANVAS_WIDTH,cv2.BORDER_CONSTANT,value=color)
-        
-        image = interface.insertMessage(image, message)
-        image = interface.insertLogo(image)
-        image = interface.insertLogo2(image)
-        
+
+        if not PROPAGANDA:
+            if SHOW_BB:
+                image = detector.draw(image)
+            image = cv2.copyMakeBorder(image,CANVAS_HEIGHT,CANVAS_HEIGHT,CANVAS_WIDTH,CANVAS_WIDTH,cv2.BORDER_CONSTANT,value=color)
+            
+            image = interface.insertMessage(image, message)
+            image = interface.insertLogo(image)
+            image = interface.insertLogo2(image)
+        else:
+            #banner
+            image = banner.get()
+            pass
+
         if step == 5:
             if usuario != None:
                 registroPonto = time.strftime("%d/%m/%Y %H:%M:%S", time.gmtime()) + ' - ' + usuario['nome'] + '['+ usuario['empresa'] + ']'
@@ -250,10 +261,12 @@ def videoMain():
         #print(k)
 
     sound.soundQ.put('False')
-    iopin.stop = True
-    detector.stop = True
+    iopin.stop()
+    detector.stop()
     cam.stop()
     cv2.destroyAllWindows()
+    if PROPAGANDA:
+        banner.stop()
     if SHARED_MEMORY:
     	shm.close()
     	shm.unlink()
