@@ -21,7 +21,7 @@ SOUND_WAIT_TIME = 13 #tempo em segundos para reproduzir o mesmo som
 CATRACA_TIME = 5 #tempo em segudos para liberar acesso da catrata
 
 TF_LITE = False
-SHOW_BB = False #marca cada deteccao realizada com sucesso
+SHOW_BB = True #marca cada deteccao realizada com sucesso
 CONFIDENCE = 0.70
 
 #tempo entre detecções
