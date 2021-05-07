@@ -116,6 +116,8 @@ class IoManager():
                         GPIO.wait_for_edge(self.temperatura, GPIO.RISING, timeout=500)
                         self.outputQ.put('stop')
                         print('stop')
+                    time.sleep(1)
+                    break
                 if self.stopped:
                     break
         else:
@@ -177,6 +179,8 @@ class IoManager():
                 print('erro ao avaliar temp')
             if self.stopped:
                 break
+        if self.has_GPIO:
+            GPIO.cleanup()
 
     def run(self):
         Thread(target=self.loopGpio, args=(), daemon=True).start()
