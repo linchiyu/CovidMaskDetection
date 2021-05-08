@@ -18,7 +18,7 @@ import uuid
 import hashlib, binascii, os
 import logging
 if SHARED_MEMORY:
-	#from multiprocessing import shared_memory
+    #from multiprocessing import shared_memory
     pass
 
 def get_id():
@@ -101,9 +101,9 @@ def videoMain():
     usuario = None
 
     if SHARED_MEMORY:
-    	nbytes = SCREEN_WIDTH*SCREEN_HEIGHT*3
-    	#shm = shared_memory.SharedMemory(name='cameraframe', create=True, size=nbytes)
-    	#sharedimg = np.ndarray((SCREEN_HEIGHT, SCREEN_WIDTH, 3), dtype=np.uint8, buffer=shm.buf)
+        nbytes = SCREEN_WIDTH*SCREEN_HEIGHT*3
+        #shm = shared_memory.SharedMemory(name='cameraframe', create=True, size=nbytes)
+        #sharedimg = np.ndarray((SCREEN_HEIGHT, SCREEN_WIDTH, 3), dtype=np.uint8, buffer=shm.buf)
         pass
 
     while True:
@@ -226,8 +226,16 @@ def videoMain():
             image = interface.insertLogo2(image)
         else:
             #banner
-            image = banner.get()
-            pass
+            if banner.existePropaganda:
+                image = banner.get()
+            else:
+                if SHOW_BB:
+                    image = detector.draw(image)
+                image = cv2.copyMakeBorder(image,CANVAS_HEIGHT,CANVAS_HEIGHT,CANVAS_WIDTH,CANVAS_WIDTH,cv2.BORDER_CONSTANT,value=color)
+                
+                image = interface.insertMessage(image, message)
+                image = interface.insertLogo(image)
+                image = interface.insertLogo2(image)
 
         if step == 5:
             if usuario != None:
@@ -246,7 +254,7 @@ def videoMain():
 
         image = cv2.resize(image, (SCREEN_WIDTH, SCREEN_HEIGHT))
         if SHARED_MEMORY:
-        	#sharedimg[:] = image[:]
+            #sharedimg[:] = image[:]
             pass
         cv2.imshow('ArticfoxMaskDetection', image)
 
@@ -255,6 +263,8 @@ def videoMain():
             break
         elif k == ord("p"):
             step = step+1
+        elif k == ord("a"):
+            iopin.outputAQ.put('pass')
         elif k == 13 or k == 10:
             usr = rfid.verificarUsuario(codigo_rfid)
             #print(codigo_rfid)
@@ -271,8 +281,8 @@ def videoMain():
     if PROPAGANDA:
         banner.stop()
     if SHARED_MEMORY:
-    	#shm.close()
-    	#shm.unlink()
+        #shm.close()
+        #shm.unlink()
         pass
 
 

@@ -15,6 +15,7 @@ class IoManager():
         #saída de sinal LOW libera a catraca
         self.catracaDireita = 23
         self.catracaEsquerda = 24
+        self.eclusa = 25
         #contagem catraca - IN
         #VERIFICAR REGRA DO SINAL
         #self.contagemCatraca = 24
@@ -32,6 +33,8 @@ class IoManager():
         #1 LOW = temperatura normal
         #2 LOW seguidos = temperatura abaixo/acima
         self.temperatura = 26
+        self.tempAceita = 13
+        self.tempRecusa = 19
         #sensor de alcool gel
         #VERIFICAR REGRA DO SINAL
         self.sensorAlcool = 17
@@ -46,6 +49,7 @@ class IoManager():
             
             GPIO.setup(self.catracaDireita, GPIO.OUT)
             GPIO.setup(self.catracaEsquerda, GPIO.OUT)
+            GPIO.setup(self.eclusa, GPIO.OUT)
 
             GPIO.setup(self.sensorEsqCat, GPIO.IN, pull_up_down=GPIO.PUD_UP)
             GPIO.setup(self.sensorDirCat, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -56,6 +60,8 @@ class IoManager():
             #GPIO.add_event_detect(self.contagemCatraca, GPIO.RISING, bouncetime=300)
 
             GPIO.setup(self.temperatura, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+            GPIO.add_event_detect(self.tempAceita, GPIO.FALLING, callback=self.tempClassifier)
+            GPIO.add_event_detect(self.tempRecusa, GPIO.FALLING, callback=self.tempClassifier)
             #GPIO.add_event_detect(self.temperatura, GPIO.RISING, callback=self.tempSignal)
 
             GPIO.setup(self.sensorAlcool, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -64,6 +70,7 @@ class IoManager():
             
             GPIO.output(self.catracaDireita, GPIO.HIGH)
             GPIO.output(self.catracaEsquerda, GPIO.HIGH)
+            GPIO.output(self.eclusa, GPIO.HIGH)
         #0 = sleep, 1 = temperatura, 3 = alcool, 5 = catraca
         self.step = 0
         self.tempTimer = []
@@ -118,9 +125,17 @@ class IoManager():
                 if self.stopped:
                     break
         else:
-            print('avaliando temperatura GPIO')
+            #print('avaliando temperatura GPIO')
             self.outputQ.put('pass')
             self.step = 0
+
+    def tempClassifier(self, channel):
+        if channel == self.tempAceita:
+            self.outputQ.put('pass')
+            print('pass')
+        elif channel == self.tempRecusa:
+            self.outputQ.put('stop')
+            print('stop')
 
     def alcoolSignal(self, channel):
         if self.step == 3:
@@ -153,6 +168,17 @@ class IoManager():
             self.step = 0
         else:
             print('catraca liberada')
+
+    def liberarEclusa(self):
+        #adicionar logica de pessoa ja ter passado na catraca
+        if self.has_GPIO:
+            time.sleep(1)
+            self.setLow(self.eclusa)
+            time.sleep(DURATION_ECLUSA)
+            self.setHigh(self.eclusa)
+            self.step = 0
+        else:
+            print('eclusa liberada')
 
     def passagemCatraca(self):
         ##############
@@ -191,6 +217,7 @@ class IoManager():
         
     def liberar(self):
         Thread(target=self.liberarCatraca, args=(), daemon=True).start()
+        Thread(target=self.liberarEclusa, args=(), daemon=True).start()
 
 
 if __name__ == '__main__':

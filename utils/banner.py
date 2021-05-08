@@ -31,6 +31,8 @@ class Banner():
 
         self.count = 0
 
+        self.existePropaganda = False
+
         scheduler = BackgroundScheduler()
         job = scheduler.add_job(self.update, 'interval', args=[], seconds=TEMPO_REFRESH_BANNER)
         scheduler.start()
@@ -61,7 +63,9 @@ class Banner():
         path = self.path
         onlyfiles = self.loadImageList()
         if len(onlyfiles) <= 0:
+            self.existePropaganda = False
             return self.generico
+        self.existePropaganda = True
         img = cv2.imread(path+"/propaganda/"+onlyfiles[self.count%len(onlyfiles)])
         self.count = self.count + 1
         if self.count > 37203685775807:
