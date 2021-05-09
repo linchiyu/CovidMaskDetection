@@ -15,7 +15,7 @@ class IoManager():
         #saída de sinal LOW libera a catraca
         self.catracaDireita = 23
         self.catracaEsquerda = 24
-        self.eclusa = 25
+        self.eclusa = 8
         #contagem catraca - IN
         #VERIFICAR REGRA DO SINAL
         #self.contagemCatraca = 24
