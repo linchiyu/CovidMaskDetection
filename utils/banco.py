@@ -7,8 +7,6 @@ import threading
 HOST = 'localhost'
 USER = 'root'
 PASSWORD = 'articfox'
-USER = 'chiyu'
-PASSWORD = 'chiyu'
 DATABASE = 'uppcare01'
 
 def criarBanco():
