@@ -216,26 +216,16 @@ def videoMain():
                 iopin.liberar()
             lastStep = step
 
-        if not PROPAGANDA:
+        if PROPAGANDA and banner.existePropaganda:
+            image = banner.get()
+        else:
             if SHOW_BB:
                 image = detector.draw(image)
             image = cv2.copyMakeBorder(image,CANVAS_HEIGHT,CANVAS_HEIGHT,CANVAS_WIDTH,CANVAS_WIDTH,cv2.BORDER_CONSTANT,value=color)
             
             image = interface.insertMessage(image, message)
             image = interface.insertLogo(image)
-            image = interface.insertLogo2(image)
-        else:
-            #banner
-            if banner.existePropaganda:
-                image = banner.get()
-            else:
-                if SHOW_BB:
-                    image = detector.draw(image)
-                image = cv2.copyMakeBorder(image,CANVAS_HEIGHT,CANVAS_HEIGHT,CANVAS_WIDTH,CANVAS_WIDTH,cv2.BORDER_CONSTANT,value=color)
-                
-                image = interface.insertMessage(image, message)
-                image = interface.insertLogo(image)
-                image = interface.insertLogo2(image)
+            image = interface.insertLogo2(image)    
 
         if step == 5:
             if usuario != None:
