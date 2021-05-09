@@ -19,6 +19,9 @@ SOUND_TIME = 4 #tempo em segundos para reproduzir outro som
 SOUND_WAIT_TIME = 13 #tempo em segundos para reproduzir o mesmo som
 TIME_TEMP = 13
 
+PROPAGANDA = True
+TEMPO_REFRESH_BANNER = 10
+
 TF_LITE = False
 SHOW_BB = True #marca cada deteccao realizada com sucesso
 CONFIDENCE = 0.70

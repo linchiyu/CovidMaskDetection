@@ -10,6 +10,7 @@ import logging
 import datetime
 from utils import banco
 from utils import usbcontroller
+from utils.banner import Banner
 from utils.iocontroller import IoManager
 if TF_LITE:
     from utils.face_class import MaskDetectorLite as MaskDetector
@@ -63,6 +64,9 @@ def videoMain():
     iopin.run()
     dbm = banco.DBManager()
     usbc = usbcontroller.USBDetector()
+
+    if PROPAGANDA:
+        banner = Banner(shape=(SCREEN_WIDTH, SCREEN_HEIGHT))
 
     if FULL_SCREEN:
         cv2.namedWindow('ArticfoxMaskDetection', cv2.WINDOW_FREERATIO)
@@ -137,13 +141,16 @@ def videoMain():
                 reset = False
                 played_sound_time = 0
         
-        if SHOW_BB:
-            image = detector.draw(image)
-        image = cv2.copyMakeBorder(image,CANVAS_HEIGHT,CANVAS_HEIGHT,CANVAS_WIDTH,CANVAS_WIDTH,cv2.BORDER_CONSTANT,value=color)
-        
-        image = interface.insertMessage(image, message)
-        image = interface.insertLogo(image)
-        image = interface.insertLogo2(image)
+        if PROPAGANDA and banner.existePropaganda:
+            image = banner.get()
+        else:
+            if SHOW_BB:
+                image = detector.draw(image)
+            image = cv2.copyMakeBorder(image,CANVAS_HEIGHT,CANVAS_HEIGHT,CANVAS_WIDTH,CANVAS_WIDTH,cv2.BORDER_CONSTANT,value=color)
+            
+            image = interface.insertMessage(image, message)
+            image = interface.insertLogo(image)
+            image = interface.insertLogo2(image)
 
         if SCREEN_ROTATION == 0:
             None
@@ -165,6 +172,8 @@ def videoMain():
     detector.stop()
     cam.stop()
     iopin.stop()
+    if PROPAGANDA:
+        banner.stop()
     cv2.destroyAllWindows()
 
 

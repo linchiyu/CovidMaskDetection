@@ -1,6 +1,7 @@
 import os
 import threading
 import time
+import shutil
 from utils import banco
 if 'nt' in os.name:
     pass
@@ -15,6 +16,8 @@ class USBDetector():
     def __init__(self):
         ''' Initiate the object '''
         self.path = "/home/pi/mountusbdevice"
+        self.propagandaspath = os.getcwd()+"/propaganda"
+
         if 'nt' in os.name:
             print('iniciando usb detector')
         else:
@@ -53,6 +56,13 @@ class USBDetector():
         #generate csv data
         self.dbm.registros2Csv(self.dbm.receberRegistros())
 
+        tempfolder = os.getcwd()+"/propaganda_new"
+
+        try:
+            os.makedirs(path)
+        except:
+            None
+
         #find device(s)
         time.sleep(5)
         removable = [device for device in self.context.list_devices(subsystem='block', DEVTYPE='disk') if device.attributes.asstring('removable') == "1"]
@@ -67,6 +77,22 @@ class USBDetector():
 
                 #os.system("sudo cp /home/pi/inicializador.sh "+path+"/inic.sh")
                 os.system("sudo cp "+ self.dbm.path + "registros.csv " + path + "/registros.csv")
+
+                if os.path.exists(path+"/propaganda"):
+                    try:
+                        shutil.rmtree(tempfolder)
+                    except:
+                        None
+
+                    copytree(path+"/propaganda", tempfolder)
+
+                    try:
+                        shutil.rmtree(self.propagandaspath)
+                    except:
+                        None
+
+                    os.rename(tempfolder, self.propagandaspath)
+                    #commit
 
                 #commit
 
