@@ -162,9 +162,9 @@ def videoMain():
             break
 
     sound.soundQ.put('False')
-    detector.stop = True
+    detector.stop()
     cam.stop()
-    iopin.stop = True
+    iopin.stop()
     cv2.destroyAllWindows()
 
 

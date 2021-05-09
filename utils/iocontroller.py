@@ -60,14 +60,14 @@ class IoManager():
 
             GPIO.setup(self.sensorAlcool, GPIO.IN, pull_up_down=GPIO.PUD_UP)
             GPIO.setup(self.alcoolVazio, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-            GPIO.add_event_detect(self.sensorAlcool, GPIO.FALLING, callback=self.alcoolSignal)
+            GPIO.add_event_detect(self.sensorAlcool, GPIO.FALLING, callback=self.avaliarAlcool)
             
             GPIO.output(self.catracaDireita, GPIO.HIGH)
             GPIO.output(self.catracaEsquerda, GPIO.HIGH)
         #0 = sleep, 1 = temperatura, 3 = alcool, 5 = catraca
         self.step = 0
         self.tempTimer = []
-        self.stop = False
+        self.stopped = False
         #self.controlQ = Queue() #true para liberar catraca, false para desligar programa
         self.outputQ = Queue() #saída de informações de GPIO
         self.outputAQ = Queue() #saída de informações de GPIO
@@ -112,8 +112,10 @@ class IoManager():
                         GPIO.wait_for_edge(self.temperatura, GPIO.RISING, timeout=500)
                         self.outputQ.put('stop')
                         print('stop')
+                    time.sleep(1)
                     break
-                now = time.time()
+                if self.stopped:
+                    break
         else:
             print('avaliando temperatura GPIO')
             self.outputQ.put('pass')
@@ -126,7 +128,8 @@ class IoManager():
         
     def avaliarAlcool(self):
         if self.has_GPIO:
-            pass
+            self.outputAQ.put('pass')
+            self.step = 0
         else:
             print('avaliando sensor alcool GPIO')
             self.outputAQ.put('pass')
@@ -166,8 +169,12 @@ class IoManager():
 
     def loopGpio(self):
         while True:
-            self.avaliarTemperatura()
-            if self.stop:
+            try:
+                self.avaliarTemperatura()
+                time.sleep(0.1)
+            except:
+                None
+            if self.stopped:
                 break
         if self.has_GPIO:
             GPIO.cleanup()
@@ -178,10 +185,16 @@ class IoManager():
     def liberar(self):
         Thread(target=self.liberarCatraca, args=(), daemon=True).start()
 
+    def stop(self):
+        self.stopped = True
+        time.sleep(10)
+        if self.has_GPIO:
+            GPIO.cleanup()
+
 
 if __name__ == '__main__':
     x = IoManager()
     x.run()
     x.step = 1
     time.sleep(10)
-    x.stop = True
+    x.stopped = True
