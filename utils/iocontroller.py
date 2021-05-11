@@ -35,6 +35,11 @@ class IoManager():
         self.temperatura = 26
         self.tempAceita = 13
         self.tempRecusa = 19
+
+        self.tempAbounce = False
+        self.tempRbounce = False
+        
+        self.analisingTemp = False
         #sensor de alcool gel
         #VERIFICAR REGRA DO SINAL
         self.sensorAlcool = 17
@@ -60,8 +65,10 @@ class IoManager():
             #GPIO.add_event_detect(self.contagemCatraca, GPIO.RISING, bouncetime=300)
 
             GPIO.setup(self.temperatura, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-            GPIO.add_event_detect(self.tempAceita, GPIO.FALLING, callback=self.tempClassifier)
-            GPIO.add_event_detect(self.tempRecusa, GPIO.FALLING, callback=self.tempClassifier)
+            GPIO.setup(self.tempAceita, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+            GPIO.setup(self.tempRecusa, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+            GPIO.add_event_detect(self.tempAceita, GPIO.BOTH, callback=self.tempClassifier)
+            GPIO.add_event_detect(self.tempRecusa, GPIO.BOTH, callback=self.tempClassifier)
             #GPIO.add_event_detect(self.temperatura, GPIO.RISING, callback=self.tempSignal)
 
             GPIO.setup(self.sensorAlcool, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -130,34 +137,34 @@ class IoManager():
             self.step = 0
 
     def tempClassifier(self, channel):
-        if channel == self.tempAceita:
-            self.outputQ.put('pass')
-            print('pass')
-        elif channel == self.tempRecusa:
-            self.outputQ.put('stop')
-            print('stop')
+        if not self.analisingTemp:
+            self.analisingTemp = True
+            time.sleep(0.1)
+            if channel == self.tempAceita:
+                if self.getPinValue(self.tempAceita):
+                    if not self.tempAbounce:
+                        self.outputQ.put('pass')
+                        print('pass')
+                        self.tempAbounce = True
+                else:
+                    if self.tempAbounce:
+                        self.tempAbounce = False
+            elif channel == self.tempRecusa:
+                if self.getPinValue(self.tempRecusa):
+                    if not self.tempRbounce:
+                        self.outputQ.put('stop')
+                        print('stop')
+                        self.tempRbounce = True
+                else:
+                    if self.tempRbounce:
+                        self.tempRbounce = False
+            self.analisingTemp = False
 
-    def alcoolSignal(self, channel):
-        if self.step == 3:
-            self.outputAQ.put('pass')
-            self.step = 0
         
     def avaliarAlcool(self, channel):
-        if self.has_GPIO:
-            self.outputAQ.put('pass')
-            self.step = 0
-        else:
-            print('avaliando sensor alcool GPIO')
-            self.outputAQ.put('pass')
-            self.step = 0
+        self.outputAQ.put('pass')
 
     def liberarCatraca(self):
-        ##############
-        if self.contagem >= CAPACIDADE_PESSOAS:
-            #capacidade máxima de pessoas atingida
-            self.outputQ.put('stop')
-            print('stop')
-        #adicionar logica de pessoa ja ter passado na catraca
         if self.has_GPIO:
             time.sleep(1)
             self.setLow(self.catracaDireita)
@@ -170,7 +177,6 @@ class IoManager():
             print('catraca liberada')
 
     def liberarEclusa(self):
-        #adicionar logica de pessoa ja ter passado na catraca
         if self.has_GPIO:
             time.sleep(1)
             self.setLow(self.eclusa)
@@ -179,20 +185,6 @@ class IoManager():
             self.step = 0
         else:
             print('eclusa liberada')
-
-    def passagemCatraca(self):
-        ##############
-        #adicionar logica de pessoa ja ter passado na catraca
-        if self.has_GPIO:
-            time.sleep(1)
-            self.setLow(self.catracaDireita)
-            self.setLow(self.catracaEsquerda)
-            time.sleep(1)
-            self.setHigh(self.catracaDireita)
-            self.setHigh(self.catracaEsquerda)
-            self.step = 0
-        else:
-            print('catraca liberada')
 
     def loopGpio(self):
         while True:

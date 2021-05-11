@@ -30,13 +30,13 @@ USUARIO = [{
 }]
 
 def verificarUsuario(numero):
-	try:
-		numero = int(numero)
-	except:
-		return None
-	for usr in USUARIO:
-		if usr['numero'] == numero:
-			#print(usr)
-			return usr
-	return None
+    try:
+        numero = int(numero)
+    except:
+        return None
+    for usr in USUARIO:
+        if usr['numero'] == numero:
+            #print(usr)
+            return usr
+    return None
 
