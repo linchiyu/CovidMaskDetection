@@ -104,7 +104,8 @@ def videoMain():
     codigo_rfid = ''
     play = False
     reset = False
-    somMascara = False
+    somMascara = True
+    first_mask_detection = True
 
     #0 = Wait, 1 = temperatura, 2 = mascara, 3 = alcool, 4 = rfid, 5 = catraca
     step = 1
@@ -171,6 +172,7 @@ def videoMain():
                     iopin.outputQ.queue.clear()
                     step_init_time = time.time()
                     reset_time = TIME_MASCARA
+                    first_mask_detection = True
                 else:
                     #pode salvar a informação de que a temperatura não foi aceita
                     pass
@@ -192,9 +194,10 @@ def videoMain():
                 else: #stop/sem_mascara
                     #step_init_time = cur_time
                     message = 'stop'
-                    if somMascara == True:
+                    if first_mask_detection and somMascara:
                         sound.soundQ.queue.clear()
                         sound.soundQ.put('stop')
+                        first_mask_detection = False
                         step_init_time = time.time()
                     validacao = 0
         elif step == 'alcool':
