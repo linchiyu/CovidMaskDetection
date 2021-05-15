@@ -280,8 +280,6 @@ def videoMain():
         elif SCREEN_ROTATION == 270:
             image = cv2.rotate(image, cv2.ROTATE_90_COUNTERCLOCKWISE)
 
-        if image.shape[0] != SCREEN_HEIGHT or image.shape[1] != SCREEN_WIDTH:
-            image = cv2.resize(image, (SCREEN_WIDTH, SCREEN_HEIGHT))
         cv2.imshow('ArticfoxMaskDetection', image)
         
         k = cv2.waitKey(50) & 0xFF
