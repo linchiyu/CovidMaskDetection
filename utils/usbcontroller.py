@@ -105,6 +105,7 @@ class USBDetector():
                 print('done copying')
                 time.sleep(5)
                 self.lastUpdated = time.time()
+            #os.system("sudo umount /dev/sdb1")
         pass
 
     def on_removal(self):
