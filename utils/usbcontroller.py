@@ -113,8 +113,11 @@ class USBDetector():
                 os.system("sudo umount -l " + path)
                 print('done copying')
                 time.sleep(5)
+                os.system("sudo eject " + p)
                 self.lastUpdated = time.time()
-            #os.system("sudo umount /dev/sdb1")
+            os.system("sudo eject " + str(device.device_node))
+            time.sleep(1)
+            os.system("sudo udisksctl power-off -b " + str(device.device_node))
         pass
 
     def on_removal(self):
