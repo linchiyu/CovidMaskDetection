@@ -39,7 +39,7 @@ class MaskDetector():
     def inference(self, image,
                   conf_thresh=0.5,
                   iou_thresh=0.4,
-                  target_shape=(160, 160),
+                  target_shape=(260, 260),
                   color='rgb'
                   ):
         '''
