@@ -85,6 +85,7 @@ class IoManager():
         #self.controlQ = Queue() #true para liberar catraca, false para desligar programa
         self.outputQ = Queue() #saída de informações de GPIO
         self.outputAQ = Queue() #saída de informações de GPIO
+        pass
 
 
     def setHigh(self, pin):
