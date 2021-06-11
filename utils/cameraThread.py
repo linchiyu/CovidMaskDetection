@@ -1,6 +1,7 @@
 from threading import Thread
 from threading import Lock
 import cv2
+import numpy as np
 import sys
 import time
 
@@ -16,7 +17,8 @@ class PiVideoStream:
             from picamera import PiCamera
             self.camera = PiCamera()
         except:
-            sys.exit(1)
+            self.stop()
+            raise RuntimeError('picamera start failed.')
         self.camera.resolution = resolution
         self.camera.framerate = framerate
         self.camera.awb_mode = 'fluorescent'
@@ -64,9 +66,12 @@ class PiVideoStream:
                 frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
             with self.read_lock:
                 self.frame = frame
+        self.stop()
 
     def read(self):
         """ return the frame most recently read """
+        if self.stopped:
+            raise RuntimeError('Failed to read from camera. Camera stopped.')
         with self.read_lock:
             frame = self.frame.copy()
         return frame
@@ -86,13 +91,15 @@ class WebcamVideoStream:
         try:
             self.webcam = cv2.VideoCapture(cam_src)
         except:
+            self.stop()
             print ("Erro na camera! Verifique se a camera", cam_src, "está instalada!")
-            raise
-            sys.exit(1)
+            raise RuntimeError("Erro na leitura da camera! Verifique se a camera", cam_src, "está instalada!")
         self.webcam.set(3, cam_width)
         self.webcam.set(4, cam_height)
         self.rotation = rotation
         (self.grabbed, self.frame) = self.webcam.read()
+        if not self.grabbed:
+            self.frame = np.zeros((cam_height, cam_width, 3))
         self.read_lock = Lock()
         # initialize the variable used to indicate if the thread should
         # be stopped
@@ -107,31 +114,42 @@ class WebcamVideoStream:
 
     def update(self):
         """ keep looping infinitely until the thread is stopped """
+        erro = 0
         while True:
             # if the thread indicator variable is set, stop the thread
             if self.stopped:
                 self.webcam.release()
-                break
+                return
             # otherwise, read the next frame from the webcam stream
             grabbed, frame = self.webcam.read()
-            if self.rotation == 0:
-                None
-            elif self.rotation == 90:
-                frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
-            elif self.rotation == 180:
-                frame = cv2.rotate(frame, cv2.ROTATE_180)
-            elif self.rotation == 270:
-                frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
+            if grabbed:
+                erro = 0
+                if self.rotation == 0:
+                    None
+                elif self.rotation == 90:
+                    frame = cv2.rotate(frame, cv2.ROTATE_90_CLOCKWISE)
+                elif self.rotation == 180:
+                    frame = cv2.rotate(frame, cv2.ROTATE_180)
+                elif self.rotation == 270:
+                    frame = cv2.rotate(frame, cv2.ROTATE_90_COUNTERCLOCKWISE)
 
-            #mirror the image
-            frame = cv2.flip(frame, 1)
+                #mirror the image
+                frame = cv2.flip(frame, 1)
 
-            with self.read_lock:
-                self.grabbed = grabbed
-                self.frame = frame
-
+                with self.read_lock:
+                    self.grabbed = grabbed
+                    self.frame = frame
+            else:
+                erro = erro + 1
+                if erro >= 10:
+                    self.stop()
+                    raise RuntimeError('Failed to read from camera')
+                time.sleep(0.5)
+            
     def read(self):
         """ return the frame most recently read """
+        if self.stopped:
+            raise RuntimeError('Failed to read from camera. Camera stopped.')
         with self.read_lock:
             frame = self.frame.copy()
         return frame
@@ -156,10 +174,11 @@ def iniciarCamera(camera=0, width=640, height=480, rotation=0):
         return cap
     except Exception:
         print("Erro na abertura da camera")
-        sys.exit(0)
+        raise
 
 if __name__ == '__main__':
-    cam = iniciarCamera(camera=1, width=640, height=480, rotation=90)
+    cam = iniciarCamera(camera=1, width=640, height=480, rotation=0)
+    #cam = cv2.VideoCapture(1)
     while True:
         image = cam.read()
         cv2.imshow('image', image)
