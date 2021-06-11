@@ -1,0 +1,5 @@
+eclusa
+
+enviar sinal para travar
+
+não recebe sinal libera 3-5 segundos
