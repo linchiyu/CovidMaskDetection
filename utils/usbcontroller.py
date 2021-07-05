@@ -2,7 +2,9 @@ import os
 import threading
 import time
 import shutil
-from utils import banco
+import settings
+if not BANCO_ATIVO:
+    from utils import banco
 if 'nt' in os.name:
     pass
 else:
@@ -41,7 +43,10 @@ class USBDetector():
             except:
                 None
         self.lastUpdated = 0
-        self.dbm = banco.DBManager()
+
+
+        if not BANCO_ATIVO:
+            self.dbm = banco.DBManager()
  
     def _work(self):
         ''' Runs the actual loop to detect the events '''
@@ -66,7 +71,9 @@ class USBDetector():
         #print('insertion') 
         path = self.path
         #generate csv data
-        self.dbm.registros2Csv(self.dbm.receberRegistros())
+
+        if not BANCO_ATIVO:
+            self.dbm.registros2Csv(self.dbm.receberRegistros())
 
         tempfolder = os.getcwd()+"/propaganda_new"
 
@@ -88,7 +95,9 @@ class USBDetector():
                 #save csv on device
 
                 #os.system("sudo cp /home/pi/inicializador.sh "+path+"/inic.sh")
-                os.system("sudo cp "+ self.dbm.path + "registros.csv " + path + "/registros.csv")
+
+                if not BANCO_ATIVO:
+                    os.system("sudo cp "+ self.dbm.path + "registros.csv " + path + "/registros.csv")
 
                 if os.path.exists(path+"/propaganda"):
                     try:
@@ -117,7 +126,7 @@ class USBDetector():
                 self.lastUpdated = time.time()
             os.system("sudo eject " + str(device.device_node))
             time.sleep(1)
-            os.system("sudo udisksctl power-off -b " + str(device.device_node))
+            #os.system("sudo udisksctl power-off -b " + str(device.device_node))
         pass
 
     def on_removal(self):

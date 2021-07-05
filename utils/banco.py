@@ -3,11 +3,13 @@ import datetime
 import csv
 import os
 import threading
+import settings
 
 HOST = 'localhost'
 USER = 'root'
 PASSWORD = 'articfox'
 DATABASE = 'uppcare01'
+
 
 def criarBanco():
     mydb = mysql.connector.connect(
@@ -44,6 +46,8 @@ def resetarTabela():
 
 class DBManager():
     def __init__(self):
+        if not BANCO_ATIVO:
+            return
         self.mydb = mysql.connector.connect(
           host=HOST,
           user=USER,
@@ -57,6 +61,8 @@ class DBManager():
             None
 
     def inserirRegistro(self, data=datetime.datetime.now(), temperatura="normal", mascara="sim"):
+        if not BANCO_ATIVO:
+            return
         mycursor = self.mydb.cursor()
         sql = "INSERT INTO registro (datahora, temperatura, mascara) VALUES (%s, %s, %s)"
         val = (str(data), str(temperatura), str(mascara))
@@ -64,6 +70,8 @@ class DBManager():
         self.mydb.commit()
 
     def receberRegistros(self):
+        if not BANCO_ATIVO:
+            return []
         mycursor = self.mydb.cursor()
 
         start_date = datetime.datetime.now() - datetime.timedelta(32)
@@ -89,6 +97,8 @@ class DBManager():
         t.start()
         
     def stop(self):
+        if not BANCO_ATIVO:
+            return
         self.mydb.close()
 
 
@@ -107,5 +117,10 @@ if __name__ == '__main__':
     '''Log in to MySQL: sudo mysql --user=root
 
 Delete the root user: DROP USER 'root'@'localhost'; Create a new user: CREATE USER 'root'@'localhost' IDENTIFIED BY 'password'; Give the user all permissions: GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' WITH GRANT OPTION;
+
+
+DROP USER 'root'@'localhost';
+CREATE USER 'root'@'localhost' IDENTIFIED BY 'articfox';
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' WITH GRANT OPTION;
 
 '''

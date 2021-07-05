@@ -22,6 +22,8 @@ TIME_TEMP = 13
 PROPAGANDA = True
 TEMPO_REFRESH_BANNER = 10
 
+BANCO_ATIVO = False
+
 TF_LITE = False
 SHOW_BB = True #marca cada deteccao realizada com sucesso
 CONFIDENCE = 0.70
