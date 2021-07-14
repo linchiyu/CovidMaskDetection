@@ -1,15 +1,20 @@
 #!/bin/sh
 servico(){
-	cd /home/pi/Documents/
+	cd /home/pi/Documents/CovidMaskDetection/
+	/usr/bin/python3 first_run.py
+	cd /home/pi/Documents/CovidMaskDetection-v2/
+	/usr/bin/python3 first_run.py
+	
 	sleep 10
-
-	cd CovidMaskDetection/
+	cd /home/pi/Documents/
 	echo "Iniciando detector..."
+	cd CovidMaskDetection/
 	/usr/bin/python3 main.py
 
 }
 
 echo Iniciando Servico
+export LD_PRELOAD="/usr/lib/libtcmalloc_minimal.so.4"
 
 servico
 
