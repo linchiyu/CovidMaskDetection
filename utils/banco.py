@@ -3,7 +3,7 @@ import datetime
 import csv
 import os
 import threading
-import settings
+from settings import *
 
 HOST = 'localhost'
 USER = 'root'

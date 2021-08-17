@@ -2,7 +2,7 @@ import os
 import threading
 import time
 import shutil
-import settings
+from settings import *
 if not BANCO_ATIVO:
     from utils import banco
 if 'nt' in os.name:

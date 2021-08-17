@@ -49,7 +49,7 @@ class Banner():
 
     def loadImageList(self):
         path = self.path
-        valid_images = [".jpg",".png"]
+        valid_images = [".jpg",".png", ".jpeg"]
         onlyfiles = []
         if os.path.exists(path+"/propaganda"):
             for f in os.listdir(path+"/propaganda"):
@@ -67,6 +67,11 @@ class Banner():
             return self.generico
         self.existePropaganda = True
         img = cv2.imread(path+"/propaganda/"+onlyfiles[self.count%len(onlyfiles)])
+        if img is None:
+            os.remove(path+"/propaganda/"+onlyfiles[self.count%len(onlyfiles)])
+            self.existePropaganda = False
+            self.count = self.count + 1
+            return self.getNewImage()
         self.count = self.count + 1
         if self.count > 37203685775807:
             self.count = 0
