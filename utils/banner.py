@@ -49,7 +49,7 @@ class Banner():
 
     def loadImageList(self):
         path = self.path
-        valid_images = [".jpg",".png"]
+        valid_images = [".jpg",".png", ".jpeg"]
         onlyfiles = []
         if os.path.exists(path+"/propaganda"):
             for f in os.listdir(path+"/propaganda"):

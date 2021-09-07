@@ -2,6 +2,7 @@ import os
 import threading
 import time
 import shutil
+from settings import *
 if 'nt' in os.name:
     pass
 else:
@@ -20,7 +21,7 @@ def copytree(src, dst, symlinks=False, ignore=None):
         else:
             shutil.copy2(s, d)
 
-
+            
 class USBDetector():
     ''' Monitor udev for detection of usb '''
  
@@ -36,7 +37,7 @@ class USBDetector():
             thread.daemon = True
             thread.start()
             try:
-                os.makedirs(self.path)
+                os.system("mkdir " + self.path)
             except:
                 None
         self.lastUpdated = 0
@@ -108,7 +109,7 @@ class USBDetector():
                 self.lastUpdated = time.time()
             os.system("sudo eject " + str(device.device_node))
             time.sleep(1)
-            os.system("sudo udisksctl power-off -b " + str(device.device_node))
+            #os.system("sudo udisksctl power-off -b " + str(device.device_node))
         pass
 
     def on_removal(self):
