@@ -74,6 +74,12 @@ class Interface():
 
         return image
 
+    def insertText(self, image, text=''):
+        font = cv2.FONT_HERSHEY_TRIPLEX                                                                                 
+        cv2.putText(image, text, (60,int(image.shape[0]*0.93)), font, 0.8, (0, 0, 0), 1, cv2.LINE_AA)
+
+        return image
+
 
 if __name__ == '__main__':
 

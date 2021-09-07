@@ -129,8 +129,9 @@ def videoMain():
 
             # eu não quis a data e a hora, caso vc queira, basta usar esse código abaixo \/
             # csv.write("{},{}\n".format(datetime.datetime.now(), barcodeData))
-            message = 'temp'
-            color = BLUE
+            if qrtext != "":
+                message = 'temp'
+                color = BLUE
 
         #cv2.imshow('qrcode', frame)
         '''if detector.new:
@@ -213,6 +214,7 @@ def videoMain():
             image = interface.insertMessage(image, message)
             image = interface.insertLogo(image)
             image = interface.insertLogo2(image)
+            image = interface.insertText(image, qrtext)
 
         if SCREEN_ROTATION == 0:
             None
