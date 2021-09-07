@@ -29,7 +29,7 @@ def criarTabela():
       database=DATABASE
     )
     mycursor = mydb.cursor()
-    mycursor.execute("CREATE TABLE registro (id INT AUTO_INCREMENT PRIMARY KEY, datahora DATETIME NOT NULL, temperatura VARCHAR(30) NOT NULL, mascara VARCHAR(30) NOT NULL)")
+    mycursor.execute("CREATE TABLE registro (id INT AUTO_INCREMENT PRIMARY KEY, datahora DATETIME NOT NULL, codigoqr VARCHAR(1024) NOT NULL, temperatura VARCHAR(30) NOT NULL)")
     mydb.close()
     
 def resetarTabela():
@@ -60,12 +60,12 @@ class DBManager():
         except:
             None
 
-    def inserirRegistro(self, data=datetime.datetime.now(), temperatura="normal", mascara="sim"):
+    def inserirRegistro(self, data=datetime.datetime.now(), codigoqr="0", temperatura="normal"):
         if not BANCO_ATIVO:
             return
         mycursor = self.mydb.cursor()
-        sql = "INSERT INTO registro (datahora, temperatura, mascara) VALUES (%s, %s, %s)"
-        val = (str(data), str(temperatura), str(mascara))
+        sql = "INSERT INTO registro (datahora, codigoqr, temperatura) VALUES (%s, %s, %s)"
+        val = (str(data), str(codigoqr), str(temperatura))
         mycursor.execute(sql, val)
         self.mydb.commit()
 
@@ -86,13 +86,13 @@ class DBManager():
 
     def registros2Csv(self, registros):
         with open(self.path+"registros.csv", 'w', newline='') as myfile:
-            header = ('id', 'data', 'temperatura', 'mascara')
+            header = ('id', 'data', 'codigoqr', 'temperatura')
             wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
             wr.writerow(header)
             wr.writerows(registros)
 
-    def threadInserir(self, data=datetime.datetime.now(), temperatura="normal", mascara="sim"):
-        t = threading.Thread(target=self.inserirRegistro, args=(data, temperatura, mascara,))
+    def threadInserir(self, data=datetime.datetime.now(), codigoqr="0", temperatura="normal"):
+        t = threading.Thread(target=self.inserirRegistro, args=(data, codigoqr, temperatura,))
         t.daemon = True
         t.start()
         

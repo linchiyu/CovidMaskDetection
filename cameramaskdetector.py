@@ -12,6 +12,8 @@ from utils import banco
 from utils import usbcontroller
 from utils.banner import Banner
 from utils.iocontroller import IoManager
+from pyzbar import pyzbar
+import imutils
 if TF_LITE:
     from utils.face_class import MaskDetectorLite as MaskDetector
 else:
@@ -65,6 +67,7 @@ def videoMain():
     dbm = banco.DBManager()
     usbc = usbcontroller.USBDetector()
 
+
     if PROPAGANDA:
         banner = Banner(shape=(SCREEN_WIDTH, SCREEN_HEIGHT))
 
@@ -75,8 +78,10 @@ def videoMain():
     message = 'wait'
     color = YELLOW
     last = message
+    qrtext = ""
 
     played_sound_time = 0
+    qr_time = 0
     cur_time = 0
     play = False
     reset = False
@@ -87,6 +92,44 @@ def videoMain():
 
         cur_time = time.time()
 
+        frame = imutils.resize(image, width=400)
+        height, width, channels = image.shape
+        height1, width1, channels1 = frame.shape
+
+        # encontrar os códigos de barras (qr code) no quadro e decodificar cada um dos códigos de barras
+        barcodes = pyzbar.decode(frame)
+
+        for barcode in barcodes:
+            qr_time = cur_time
+            # extrair o local da caixa delimitadora do código de barras e desenhar
+            # a caixa delimitadora que envolve o código de barras na imagem (nesse caso está verde)
+            (x, y, w, h) = barcode.rect
+            x = int(x*width/width1)
+            y = int(y*height/height1)
+            w = int(w*width/width1)
+            h = int(h*height/height1)
+            cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+
+            # os dados do código de barras é um objeto de bytes por isso, se queremos desenhá-lo
+            # na nossa imagem de saída, precisamos convertê-lo para uma string primeiro
+            barcodeData = barcode.data.decode("utf-8")
+            barcodeType = barcode.type
+
+            # desenha os dados do código de barras e o tipo de código de barras na imagem
+            qrtext = "{}".format(barcodeData)
+            #cv2.putText(frame, '', (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+            # eu não fiz a impressão do texto que contém os dados e etc... caso vc queira mostrar
+            # basta trocar o '' por text, ficaria assim \/
+            #qrtext = "{} ({})".format(barcodeData, barcodeType)
+            cv2.putText(image, qrtext, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+
+            # se o texto do código de barras não estiver no nosso arquivo CSV, vai escrever
+            # a data e a hora + código de barras no disco e atualizar os dados
+
+            # eu não quis a data e a hora, caso vc queira, basta usar esse código abaixo \/
+            # csv.write("{},{}\n".format(datetime.datetime.now(), barcodeData))
+
+        cv2.imshow('qrcode', frame)
         if detector.new:
             detector.new = False
             if detector.largest_predict == None: #wait
@@ -120,8 +163,8 @@ def videoMain():
             result = iopin.outputQ.get()
             now = time.time()
             if result == 'pass':
-                #print('registrando temperatura regular, mascara:'+str(usando_mascara))
-                dbm.threadInserir(data=datetime.datetime.now(), temperatura="regular", mascara=usando_mascara)
+                #print('registrando temperatura regular, qr:'+str(qrtext))
+                dbm.threadInserir(data=datetime.datetime.now(), codigoqr=qrtext, temperatura="regular")
                 #enviar para o banco:
                 '''temp = 'normal'
                 mascara = usando_mascara #true/false
@@ -129,8 +172,9 @@ def videoMain():
                 '''
             elif result == 'stop':
                 #temperatura incorreta, tente novamente
-                #print('registrando temperatura irregular')
-                dbm.threadInserir(data=datetime.datetime.now(), temperatura="irregular", mascara=usando_mascara)
+                qr_time = cur_time
+                #print('registrando temperatura irregular, qr:'+str(qrtext))
+                dbm.threadInserir(data=datetime.datetime.now(), codigoqr=qrtext, temperatura="irregular")
 
         if play:
             play = False
@@ -140,6 +184,9 @@ def videoMain():
             if (cur_time - played_sound_time) > SOUND_TIME:
                 reset = False
                 played_sound_time = 0
+
+        if cur_time - qr_time > QR_TIMER:
+            qrtext = ""
         
         if PROPAGANDA and banner.existePropaganda:
             image = banner.get()
