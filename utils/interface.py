@@ -11,6 +11,8 @@ class Interface():
         self.stopMessage = imgutil.resizeMaintainAspectRatio(self.stopMessage, height=60)
         self.passMessage = cv2.imread(path+'pass.png', cv2.IMREAD_UNCHANGED)
         self.passMessage = imgutil.resizeMaintainAspectRatio(self.passMessage, height=60)
+        self.passMessage = cv2.imread(path+'temp.png', cv2.IMREAD_UNCHANGED)
+        self.passMessage = imgutil.resizeMaintainAspectRatio(self.passMessage, height=60)
 
         self.logo = cv2.imread(path+'logo.png', cv2.IMREAD_UNCHANGED)
         self.logo = imgutil.resizeMaintainAspectRatio(self.logo, height=80)

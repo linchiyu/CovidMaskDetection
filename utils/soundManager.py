@@ -28,6 +28,11 @@ class SoundManager():
                     pygame.mixer.music.play()
                     while pygame.mixer.music.get_busy() == True:
                         continue
+                elif tipo == 'temp':
+                    pygame.mixer.music.load(self.path+'temp.mp3')
+                    pygame.mixer.music.play()
+                    while pygame.mixer.music.get_busy() == True:
+                        continue
                 else:
                     break
             sleep(0.05)

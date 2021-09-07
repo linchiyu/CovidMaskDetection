@@ -14,10 +14,10 @@ from utils.banner import Banner
 from utils.iocontroller import IoManager
 from pyzbar import pyzbar
 import imutils
-if TF_LITE:
+'''if TF_LITE:
     from utils.face_class import MaskDetectorLite as MaskDetector
 else:
-    from utils.face_class import MaskDetector
+    from utils.face_class import MaskDetector'''
 
 def get_id():
     # Extract serial from cpuinfo file
@@ -55,12 +55,13 @@ def videoMain():
     GREEN = (85,201,0)
     RED = (2,1,211)
     YELLOW = (8,191,253)
+    BLUE = (210,118,0)
     
     cam = cameraThread.iniciarCamera(camera=CAMERA, width=WIDTH, height=HEIGHT, rotation=ROTATION)
     sound = SoundManager()
     sound.run()
-    detector = MaskDetector(CONFIDENCE)
-    detector.run(cam)
+    #detector = MaskDetector(CONFIDENCE)
+    #detector.run(cam)
     interface = Interface()
     iopin = IoManager()
     iopin.run()
@@ -128,9 +129,11 @@ def videoMain():
 
             # eu não quis a data e a hora, caso vc queira, basta usar esse código abaixo \/
             # csv.write("{},{}\n".format(datetime.datetime.now(), barcodeData))
+            message = 'temp'
+            color = BLUE
 
-        cv2.imshow('qrcode', frame)
-        if detector.new:
+        #cv2.imshow('qrcode', frame)
+        '''if detector.new:
             detector.new = False
             if detector.largest_predict == None: #wait
                 if last == 'wait':
@@ -158,6 +161,7 @@ def videoMain():
                 elif last == 'pass':
                     reset = True
                 last = 'stop'
+                '''
 
         if not iopin.outputQ.empty():
             result = iopin.outputQ.get()
@@ -165,6 +169,10 @@ def videoMain():
             if result == 'pass':
                 #print('registrando temperatura regular, qr:'+str(qrtext))
                 dbm.threadInserir(data=datetime.datetime.now(), codigoqr=qrtext, temperatura="regular")
+                message = 'pass'
+                color = GREEN
+                reset = True
+                reset_timer = cur_time
                 #enviar para o banco:
                 '''temp = 'normal'
                 mascara = usando_mascara #true/false
@@ -182,17 +190,24 @@ def videoMain():
             sound.soundQ.put(message)
         if reset:
             if (cur_time - played_sound_time) > SOUND_TIME:
-                reset = False
                 played_sound_time = 0
+            if (cur_time - reset_timer) > RESET_LOOP_TIMER:
+                reset = False
+                message = 'wait'
+                color = YELLOW
+                qrtext = ""
 
-        if cur_time - qr_time > QR_TIMER:
+        if (cur_time - qr_time) > QR_TIMER:
+            message = 'wait'
+            color = YELLOW
             qrtext = ""
         
         if PROPAGANDA and banner.existePropaganda:
             image = banner.get()
         else:
             if SHOW_BB:
-                image = detector.draw(image)
+                #image = detector.draw(image)
+                pass
             image = cv2.copyMakeBorder(image,CANVAS_HEIGHT,CANVAS_HEIGHT,CANVAS_WIDTH,CANVAS_WIDTH,cv2.BORDER_CONSTANT,value=color)
             
             image = interface.insertMessage(image, message)
@@ -214,9 +229,13 @@ def videoMain():
         k = cv2.waitKey(50) & 0xFF
         if k == ord("q") or k == ord("Q") or k == 27:
             break
+        if k == ord("a"):
+            iopin.outputQ.put("pass")
+        if k == ord("s"):
+            iopin.outputQ.put("stop")
 
     sound.soundQ.put('False')
-    detector.stop()
+    #detector.stop()
     cam.stop()
     iopin.stop()
     if PROPAGANDA:
